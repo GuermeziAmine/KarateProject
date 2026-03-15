@@ -1,17 +1,17 @@
-name: Octane Integration
+voila mon fichier octane yaml : name: Octane Integration
 
 on:
   pull_request:
     types: [opened, edited, closed, reopened]
-  workflow_run: 
+  workflow_run:
+    
     workflows: [Tests]
-    types: [completed]
-
+    
+    types: [requested, in_progress, completed]
 env: 
     NODE_TLS_REJECT_UNAUTHORIZED: 0
 jobs:
   octane_integration_job:
-    
     runs-on: ubuntu-latest
     name: OctaneIntegration#${{github.event.action}}#${{github.event.workflow_run.id}}
     steps:
@@ -20,15 +20,14 @@ jobs:
         id: gitHubActionsIntegration
         
         with:
-         
-          octaneUrl: 'https://almoctane-eur.saas.microfocus.com/'
+        
+          octaneUrl: 'https://almoctane-eur.saas.microfocus.com'
           octaneSharedSpace: 646003
           octaneWorkspace: 5001
           octaneClientId: ${{secrets.ALM_OCTANE_CLIENT_ID}}
           octaneClientSecret: ${{secrets.ALM_OCTANE_CLIENT_SECRET}}
-          
           githubToken: ${{secrets.GITHUB_TOKEN}}
          
-          serverBaseUrl: https://github.com/GuermeziAmine/KarateProject          
+          serverBaseUrl: https://github.com/GuermeziAmine/KarateProject
           pipelineNamePattern: '${workflow_name}'
-          unitTestResultsGlobPattern: "**/*.xml"
+          unitTestResultsGlobPattern: "**/target/surefire-reports/TEST-*.xml"
