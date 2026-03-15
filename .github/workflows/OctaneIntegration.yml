@@ -30,4 +30,4 @@ jobs:
          
           serverBaseUrl: https://github.com/GuermeziAmine/KarateProject
           pipelineNamePattern: '${workflow_name}'
-          unitTestResultsGlobPattern: "**/target/surefire-reports/TEST-*.xml"
+          unitTestResultsGlobPattern: "**/*.xml"
