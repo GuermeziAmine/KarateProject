@@ -1,4 +1,4 @@
-voila mon fichier octane yaml : name: Octane Integration
+name: Octane Integration
 
 on:
   pull_request:
