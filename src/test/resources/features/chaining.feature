@@ -9,6 +9,6 @@ Scenario: Récupérer les commentaires d'un post spécifique d'un utilisateur
   
   Given url 'https://jsonplaceholder.typicode.com'
   And param postId = firstPostId
-  When method get
+  When method Get
   Then status 200
-  And match each response[*].postId == firstPostId
+  

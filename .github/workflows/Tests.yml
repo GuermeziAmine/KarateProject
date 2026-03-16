@@ -25,9 +25,31 @@ jobs:
     - name: Execution des tests avec Maven
       run: mvn test
 
+    - name: Install JMeter 5.6.3
+      run: |
+       wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
+       tar -xzf apache-jmeter-5.6.3.tgz
+       mv apache-jmeter-5.6.3 jmeter
+
+    - name: Run JMeter tests
+      run: |
+          mkdir -p results
+          jmeter -n \
+            -t jmeter/test-plan.jmx \
+            -l results/jmeter-results.xml \
+            -Jjmeter.save.saveservice.output_format=xml
+    
+
     - name: Sauvegarde des rapports 
       if: always() 
       uses: actions/upload-artifact@v4
       with:
         name: surefire-reports
         path: target/surefire-reports/
+
+    - name: Sauvegarde des rapports JMeter
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: jmeter-results
+        path: jmeter-results/
