@@ -22,26 +22,25 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    - name: Execution des tests avec Maven
+    - name: Execution des tests Karate
       run: mvn test
 
     - name: Install JMeter 5.6.3
       run: |
-       wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
-       tar -xzf apache-jmeter-5.6.3.tgz
-       mv apache-jmeter-5.6.3 jmeter
+        wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
+        tar -xzf apache-jmeter-5.6.3.tgz
+        mv apache-jmeter-5.6.3 jmeter
 
     - name: Run JMeter tests
       run: |
-          mkdir -p results
-          jmeter -n \
-            -t jmeter/test-plan.jmx \
-            -l results/jmeter-results.xml \
-            -Jjmeter.save.saveservice.output_format=xml
-    
+        mkdir -p jmeter-results
+        ./jmeter/bin/jmeter -n \
+          -t src/test/jmeter/ThreadGroup.jmx \
+          -l jmeter-results/jmeter-results.xml \
+          -Jjmeter.save.saveservice.output_format=xml
 
-    - name: Sauvegarde des rapports 
-      if: always() 
+    - name: Sauvegarde des rapports Karate
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: surefire-reports
