@@ -1,63 +1,91 @@
-name: Tests
+name: JMeter Performance Tests
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  build:
+  performance-tests:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout du code
-      uses: actions/checkout@v4
+      # 1. Checkout du code
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Configuration du JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
+      # 2. Installer Java (requis par JMeter)
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
 
-    - name: Execution des tests Karate
-      run: mvn test
+      # 3. Installer JMeter 5.6.3
+      - name: Install JMeter
+        run: |
+          wget -q https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
+          tar -xzf apache-jmeter-5.6.3.tgz
+          echo "JMETER_HOME=$(pwd)/apache-jmeter-5.6.3" >> $GITHUB_ENV
+          echo "$(pwd)/apache-jmeter-5.6.3/bin" >> $GITHUB_PATH
 
-    - name: Install JMeter 5.6.3
-      run: |
-        wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
-        tar -xzf apache-jmeter-5.6.3.tgz
-        mv apache-jmeter-5.6.3 jmeter
+      # 4. Exécuter les tests JMeter (résultat en .jtl)
+      - name: Run JMeter Tests
+        run: |
+          mkdir -p results
+          jmeter -n \
+            -t tests/mon-test.jmx \
+            -l results/results.jtl \
+            -e -o results/html-report
 
+      # 5. Convertir JTL → JUnit XML
+      - name: Convert JTL to JUnit XML
+        run: |
+          pip install junit-xml
+          python3 - <<'EOF'
+          import csv, xml.etree.ElementTree as ET
+          from xml.dom import minidom
 
-    - name: Run JMeter tests
-      run: |
-        mkdir -p jmeter-results
-        ./jmeter/bin/jmeter -n \
-          -t src/test/jmeter/ThreadGroup.jmx \
-          -l jmeter-results/results.jtl
+          testsuites = ET.Element('testsuites')
+          testsuite = ET.SubElement(testsuites, 'testsuite', name='JMeter Performance Tests')
 
-    - name: Install XSLT processor
-      run: sudo apt-get update && sudo apt-get install -y xsltproc
+          with open('results/results.jtl', newline='') as f:
+              reader = csv.DictReader(f)
+              failures = 0
+              total = 0
+              for row in reader:
+                  total += 1
+                  tc = ET.SubElement(testsuite, 'testcase',
+                      name=row.get('label', 'unknown'),
+                      classname='JMeter',
+                      time=str(float(row.get('elapsed', 0)) / 1000))
+                  if row.get('success', 'true').lower() == 'false':
+                      failures += 1
+                      fail = ET.SubElement(tc, 'failure',
+                          message=row.get('responseMessage', 'Test failed'),
+                          type='AssertionError')
+                      fail.text = f"Response code: {row.get('responseCode', 'N/A')}"
 
-    - name: Convert JMeter results to JUnit XML
-      run: |
-        xsltproc jmeter/jtl-to-junit.xsl \
-          jmeter-results/results.jtl \
-          > jmeter-results/junit-report.xml
+          testsuite.set('tests', str(total))
+          testsuite.set('failures', str(failures))
 
-    - name: Sauvegarde des rapports Karate
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: surefire-reports
-        path: target/surefire-reports/
+          xml_str = minidom.parseString(ET.tostring(testsuites)).toprettyxml(indent='  ')
+          with open('results/junit-results.xml', 'w') as f:
+              f.write(xml_str)
+          print(f"Converted: {total} tests, {failures} failures")
+          EOF
 
-    - name: Sauvegarde des rapports JMeter
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: jmeter-results
-        path: jmeter-results/
+      # 6. Publier les résultats JUnit dans GitHub
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: results/junit-results.xml
+
+      # 7. Upload des artifacts (XML + rapport HTML)
+      - name: Upload Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jmeter-results
+          path: results/
