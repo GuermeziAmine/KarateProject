@@ -1,91 +1,52 @@
-name: JMeter Performance Tests
+name: JMeter Performance Test to ALM Octane
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ "main" ] # Déclenchement lors d'un push sur main
+  workflow_dispatch:     # Permet de lancer le pipeline manuellement depuis GitHub
 
 jobs:
-  performance-tests:
+  performance-test:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout du code
-      - name: Checkout
+      # 1. Récupérer le code source (ton projet Maven et le .jmx)
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Installer Java (requis par JMeter)
-      - name: Set up Java
+      # 2. Installer Java (JMeter et Maven en ont besoin)
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
+          cache: maven
 
-      # 3. Installer JMeter 5.6.3
-      - name: Install JMeter
-        run: |
-          wget -q https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
-          tar -xzf apache-jmeter-5.6.3.tgz
-          echo "JMETER_HOME=$(pwd)/apache-jmeter-5.6.3" >> $GITHUB_ENV
-          echo "$(pwd)/apache-jmeter-5.6.3/bin" >> $GITHUB_PATH
-
-      # 4. Exécuter les tests JMeter (résultat en .jtl)
+      # 3. Exécuter les tests via Maven
       - name: Run JMeter Tests
-        run: |
-          mkdir -p results
-          jmeter -n \
-            -t tests/mon-test.jmx \
-            -l results/results.jtl \
-            -e -o results/html-report
+        run: mvn clean verify
+        continue-on-error: true # Important : on continue même si le test JMeter remonte des erreurs, pour pouvoir envoyer le rapport à Octane
 
-      # 5. Convertir JTL → JUnit XML
+      # 4. Télécharger le fichier de transformation XSLT d'Apache
+      - name: Download JMeter to JUnit XSLT
+        run: wget https://raw.githubusercontent.com/apache/jmeter/master/extras/jmeter-results-to-junit.xsl
+
+      # 5. Convertir le rapport généré par Maven (.jtl) en JUnit XML
       - name: Convert JTL to JUnit XML
         run: |
-          pip install junit-xml
-          python3 - <<'EOF'
-          import csv, xml.etree.ElementTree as ET
-          from xml.dom import minidom
+          mkdir -p target/junit-reports
+          # Le plugin maven place généralement les résultats dans ce dossier :
+          for file in target/jmeter/results/*.jtl; do
+            filename=$(basename "$file" .jtl)
+            xsltproc jmeter-results-to-junit.xsl "$file" > "target/junit-reports/${filename}-junit.xml"
+          done
 
-          testsuites = ET.Element('testsuites')
-          testsuite = ET.SubElement(testsuites, 'testsuite', name='JMeter Performance Tests')
-
-          with open('results/results.jtl', newline='') as f:
-              reader = csv.DictReader(f)
-              failures = 0
-              total = 0
-              for row in reader:
-                  total += 1
-                  tc = ET.SubElement(testsuite, 'testcase',
-                      name=row.get('label', 'unknown'),
-                      classname='JMeter',
-                      time=str(float(row.get('elapsed', 0)) / 1000))
-                  if row.get('success', 'true').lower() == 'false':
-                      failures += 1
-                      fail = ET.SubElement(tc, 'failure',
-                          message=row.get('responseMessage', 'Test failed'),
-                          type='AssertionError')
-                      fail.text = f"Response code: {row.get('responseCode', 'N/A')}"
-
-          testsuite.set('tests', str(total))
-          testsuite.set('failures', str(failures))
-
-          xml_str = minidom.parseString(ET.tostring(testsuites)).toprettyxml(indent='  ')
-          with open('results/junit-results.xml', 'w') as f:
-              f.write(xml_str)
-          print(f"Converted: {total} tests, {failures} failures")
-          EOF
-
-      # 6. Publier les résultats JUnit dans GitHub
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
-        with:
-          files: results/junit-results.xml
-
-      # 7. Upload des artifacts (XML + rapport HTML)
-      - name: Upload Results
+      # 6. Sauvegarder les fichiers convertis en tant qu'artefact (très utile pour vérifier que la conversion a fonctionné)
+      - name: Upload JUnit XML Artifact
         uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: jmeter-results
-          path: results/
+          name: jmeter-junit-report
+          path: target/junit-reports/*.xml
+          
+      # 7. Étape de publication vers ALM Octane
+      # C'est ici que tu placeras l'action spécifique à Octane pour lire les fichiers depuis "target/junit-reports/*.xml"
