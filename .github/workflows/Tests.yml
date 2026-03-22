@@ -21,9 +21,6 @@ jobs:
           distribution: 'temurin'
           cache: maven
           
-      - name: Execution des tests avec Maven
-        run: mvn test
-        
       - name: Install JMeter 5.6.3
         run: |
           wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
@@ -32,21 +29,47 @@ jobs:
           
       - name: Run Performance Tests
         run: |
-          rm -rf report
+          # Ajout des flags -J pour forcer le format XML et capturer les erreurs
           ./jmeter/bin/jmeter -n \
           -t src/test/jmeter/ThreadGroup.jmx \
-          -l results.JTL \
-          -e -o report
+          -l results.jtl \
+          -Jjmeter.save.saveservice.output_format=xml \
+          -Jjmeter.save.saveservice.assertion_results=all
           
-      - name: Upload Performance Report
+      - name: Convert JTL to JUnit XML
+        run: |
+          # 1. Création du fichier de transformation XSLT
+          cat << 'EOF' > jmeter-results-to-junit.xsl
+          <?xml version="1.0" encoding="UTF-8"?>
+          <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+            <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
+            <xsl:template match="/testResults">
+              <testsuites>
+                <testsuite>
+                  <xsl:for-each select="*">
+                    <testcase>
+                      <xsl:attribute name="classname"><xsl:value-of select="name()"/></xsl:attribute>
+                      <xsl:attribute name="name"><xsl:value-of select="@lb"/></xsl:attribute>
+                      <xsl:attribute name="time"><xsl:value-of select="@lt div 1000"/></xsl:attribute>
+                      <xsl:if test="assertionResult/failureMessage">
+                        <failure><xsl:value-of select="assertionResult/failureMessage"/></failure>
+                      </xsl:if>
+                      <xsl:if test="@s = 'false'">
+                        <error>La requete a echoue (voir les logs JMeter)</error>
+                      </xsl:if>
+                    </testcase>
+                  </xsl:for-each>
+                </testsuite>
+              </testsuites>
+            </xsl:template>
+          </xsl:stylesheet>
+          EOF
+          
+          # 2. Exécution de la conversion
+          xsltproc jmeter-results-to-junit.xsl results.jtl > junit-report.xml
+          
+      - name: Upload JUnit Performance Report
         uses: actions/upload-artifact@v4
         with:
-          name: jmeter-report
-          path: report  
-          
-      - name: Sauvegarde des rapports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: surefire-reports
-          path: target/surefire-reports/
+          name: jmeter-junit-report
+          path: junit-report.xml
