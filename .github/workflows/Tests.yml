@@ -1,52 +1,55 @@
-name: JMeter Performance Test to ALM Octane
+name: Tests 
 
 on:
   push:
-    branches: [ "main" ] # Déclenchement lors d'un push sur main
-  workflow_dispatch:     # Permet de lancer le pipeline manuellement depuis GitHub
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: 
 
 jobs:
-  performance-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Récupérer le code source (ton projet Maven et le .jmx)
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout du code
+      uses: actions/checkout@v4
 
-      # 2. Installer Java (JMeter et Maven en ont besoin)
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
+    - name: Configuration du JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
 
-      # 3. Exécuter les tests via Maven
-      - name: Run JMeter Tests
-        run: mvn clean verify
-        continue-on-error: true # Important : on continue même si le test JMeter remonte des erreurs, pour pouvoir envoyer le rapport à Octane
+    - name: Execution des tests avec Maven
+      run: mvn test
 
-      # 4. Télécharger le fichier de transformation XSLT d'Apache
-      - name: Download JMeter to JUnit XSLT
-        run: wget https://raw.githubusercontent.com/apache/jmeter/master/extras/jmeter-results-to-junit.xsl
+    - name: Install JMeter 5.6.3
+      run: |
+       wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
+       tar -xzf apache-jmeter-5.6.3.tgz
+       mv apache-jmeter-5.6.3 jmeter
 
-      # 5. Convertir le rapport généré par Maven (.jtl) en JUnit XML
-      - name: Convert JTL to JUnit XML
-        run: |
-          mkdir -p target/junit-reports
-          # Le plugin maven place généralement les résultats dans ce dossier :
-          for file in target/jmeter/results/*.jtl; do
-            filename=$(basename "$file" .jtl)
-            xsltproc jmeter-results-to-junit.xsl "$file" > "target/junit-reports/${filename}-junit.xml"
-          done
+    - name: Run JMeter tests
+      run: |
+          mkdir -p results
+          jmeter -n \
+            -t jmeter/test-plan.jmx \
+            -l results/jmeter-results.xml \
+            -Jjmeter.save.saveservice.output_format=xml
+    
 
-      # 6. Sauvegarder les fichiers convertis en tant qu'artefact (très utile pour vérifier que la conversion a fonctionné)
-      - name: Upload JUnit XML Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: jmeter-junit-report
-          path: target/junit-reports/*.xml
-          
-      # 7. Étape de publication vers ALM Octane
-      # C'est ici que tu placeras l'action spécifique à Octane pour lire les fichiers depuis "target/junit-reports/*.xml"
+    - name: Sauvegarde des rapports 
+      if: always() 
+      uses: actions/upload-artifact@v4
+      with:
+        name: surefire-reports
+        path: target/surefire-reports/
+
+    - name: Sauvegarde des rapports JMeter
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: jmeter-results
+        path: jmeter-results/
