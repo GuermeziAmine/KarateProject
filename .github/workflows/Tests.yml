@@ -34,15 +34,15 @@ jobs:
         run: |
           rm -rf report
           ./jmeter/bin/jmeter -n \
-          -t PerformanceTest/Test.jmx \
-          -l results.jtl \
+          -t src/test/jmeter/ThreadGroup.jmx \
+          -l results.JTL \
           -e -o report
           
       - name: Upload Performance Report
         uses: actions/upload-artifact@v4
         with:
           name: jmeter-report
-          path: report
+          path: report  
           
       - name: Sauvegarde des rapports
         if: always()
