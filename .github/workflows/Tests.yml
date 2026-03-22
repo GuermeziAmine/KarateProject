@@ -36,6 +36,9 @@ jobs:
           -Jjmeter.save.saveservice.output_format=xml \
           -Jjmeter.save.saveservice.assertion_results=all
           
+      - name: Install xsltproc
+        run: sudo apt-get update && sudo apt-get install -y xsltproc
+          
       - name: Convert JTL to JUnit XML
         run: |
           # 1. Création du fichier de transformation XSLT
