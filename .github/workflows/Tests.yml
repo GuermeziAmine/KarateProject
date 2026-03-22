@@ -21,11 +21,17 @@ jobs:
           distribution: 'temurin'
           cache: maven
           
+      - name: Execution des tests avec Maven
+        run: mvn test
+        
       - name: Install JMeter 5.6.3
         run: |
           wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
           tar -xzf apache-jmeter-5.6.3.tgz
           mv apache-jmeter-5.6.3 jmeter
+          
+      - name: Install xsltproc
+        run: sudo apt-get update && sudo apt-get install -y xsltproc
           
       - name: Run Performance Tests
         run: |
@@ -35,9 +41,6 @@ jobs:
           -l results.jtl \
           -Jjmeter.save.saveservice.output_format=xml \
           -Jjmeter.save.saveservice.assertion_results=all
-          
-      - name: Install xsltproc
-        run: sudo apt-get update && sudo apt-get install -y xsltproc
           
       - name: Convert JTL to JUnit XML
         run: |
@@ -68,11 +71,18 @@ jobs:
           </xsl:stylesheet>
           EOF
           
-          # 2. Exécution de la conversion
+          
           xsltproc jmeter-results-to-junit.xsl results.jtl > junit-report.xml
           
       - name: Upload JUnit Performance Report
         uses: actions/upload-artifact@v4
         with:
           name: jmeter-junit-report
-          path: junit-report.xml
+          path: junit-report.xml  
+          
+      - name: Sauvegarde des rapports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/
