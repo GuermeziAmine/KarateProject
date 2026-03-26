@@ -23,7 +23,7 @@ This project is an automated API testing framework using **Karate DSL**, integra
 ##  CI/CD Integration
 
 *   **GitHub Actions**: Tests are automatically triggered on every `push` to the `main` branch.
-*   **ALM Octane**: Test results are automatically injected into the **Quality** module under the **Pipelines** section.
+*   **ALM Octane**: Test results are automatically injected into the **Quality Management** module under the **Quality-Tests** section.
 *   **Remote Execution**: Pipelines can be triggered directly from the ALM Octane UI using the "Run" button.
 
 
