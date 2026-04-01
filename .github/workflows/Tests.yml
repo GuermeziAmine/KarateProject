@@ -40,8 +40,8 @@ jobs:
           cache: maven
           
       - name: Execution des tests avec Maven
-        run: mvn test
-         mvn clean test 
+        run: mvn clean test -Denvironment=${{ github.event.inputs.environment }} -Dsurefire.reportFormat=xml
+         
 
 
       - name: Install JMeter 5.6.3
