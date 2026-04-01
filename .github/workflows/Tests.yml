@@ -41,9 +41,9 @@ jobs:
           
       - name: Execution des tests avec Maven
         run: mvn test
-         mvn clean test -Dkarate.env=${{ github.event.inputs.environment || 'preprod' }}
+         mvn clean test 
 
-         
+
       - name: Install JMeter 5.6.3
         run: |
           wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
