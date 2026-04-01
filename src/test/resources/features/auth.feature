@@ -1,7 +1,7 @@
 Feature: OMNI Authentication
 
   Background:
-    * url baseUrl
+    * url 'https://api-noprod.omnichannel-stage.np.stla-aws.net'
     * configure headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' }
 
   Scenario: Retrieve OAuth2 Token
