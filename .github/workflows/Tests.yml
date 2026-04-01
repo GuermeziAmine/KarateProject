@@ -52,49 +52,39 @@ jobs:
       - name: Install xsltproc
         run: sudo apt-get update && sudo apt-get install -y xsltproc
           
-      - name: Run Performance Tests
-        run: |
-          # Ajout des flags -J pour forcer le format XML et capturer les erreurs
-          ./jmeter/bin/jmeter -n \
-          -t src/test/jmeter/ThreadGroup.jmx \
-          -l results.jtl \
-          -Jjmeter.save.saveservice.output_format=xml \
-          -Jjmeter.save.saveservice.assertion_results=all
-          
       - name: Convert JTL to JUnit XML
         run: |
-          FILENAME=$(basename $(ls src/test/jmeter/*.jmx | head -n 1) .jmx)
-          echo "Nom detecte pour Octane : $FILENAME"
-          
-
-          cat << 'EOF' > jmeter-results-to-junit.xsl
-          <?xml version="1.0" encoding="UTF-8"?>
-          <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
-            <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
-            <xsl:template match="/testResults">
-              <testsuites>
-                <testsuite>
-                  <xsl:for-each select="*">
-                    <testcase>
-                      <xsl:attribute name="classname"><xsl:value-of select="name()"/></xsl:attribute>
-                      <xsl:attribute name="name">$FILENAME</xsl:attribute>
-                      <xsl:attribute name="time"><xsl:value-of select="@lt div 1000"/></xsl:attribute>
-                      <xsl:if test="assertionResult/failureMessage">
-                        <failure><xsl:value-of select="assertionResult/failureMessage"/></failure>
-                      </xsl:if>
-                      <xsl:if test="@s = 'false'">
-                        <error>La requete a echoue (voir les logs JMeter)</error>
-                      </xsl:if>
-                    </testcase>
-                  </xsl:for-each>
-                </testsuite>
-              </testsuites>
-            </xsl:template>
-          </xsl:stylesheet>
-          EOF
-          
-          
-          xsltproc jmeter-results-to-junit.xsl results.jtl > junit-report.xml
+            FILENAME=$(basename $(ls src/test/jmeter/*.jmx | head -n 1) .jmx)
+            echo "Nom detecte pour Octane : $FILENAME"
+            
+            # ATTENTION: Pas de guillemets autour de EOF ici !
+            cat << EOF > jmeter-results-to-junit.xsl
+            <?xml version="1.0" encoding="UTF-8"?>
+            <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+              <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
+              <xsl:template match="/testResults">
+                <testsuites>
+                  <testsuite>
+                    <xsl:for-each select="*">
+                      <testcase>
+                        <xsl:attribute name="classname"><xsl:value-of select="name()"/></xsl:attribute>
+                        <xsl:attribute name="name">$FILENAME</xsl:attribute>
+                        <xsl:attribute name="time"><xsl:value-of select="@lt div 1000"/></xsl:attribute>
+                        <xsl:if test="assertionResult/failureMessage">
+                          <failure><xsl:value-of select="assertionResult/failureMessage"/></failure>
+                        </xsl:if>
+                        <xsl:if test="@s = 'false'">
+                          <error>La requete a echoue (voir les logs JMeter)</error>
+                        </xsl:if>
+                      </testcase>
+                    </xsl:for-each>
+                  </testsuite>
+                </testsuites>
+              </xsl:template>
+            </xsl:stylesheet>
+            EOF
+            
+            xsltproc jmeter-results-to-junit.xsl results.jtl > junit-report.xml
           
       - name: Upload JUnit Performance Report
         uses: actions/upload-artifact@v4
