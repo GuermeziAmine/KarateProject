@@ -64,7 +64,10 @@ jobs:
           
       - name: Convert JTL to JUnit XML
         run: |
-          # 1. Création du fichier de transformation XSLT
+          FILENAME=$(basename $(ls src/test/jmeter/*.jmx | head -n 1) .jmx)
+          echo "Nom detecte pour Octane : $FILENAME"
+          
+          
           cat << 'EOF' > jmeter-results-to-junit.xsl
           <?xml version="1.0" encoding="UTF-8"?>
           <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">

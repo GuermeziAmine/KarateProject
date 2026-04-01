@@ -1,6 +1,6 @@
 Feature: Chaining
 
-@API
+
 Scenario: Récupérer les commentaires d'un post spécifique d'un utilisateur
 
   Given url 'https://jsonplaceholder.typicode.com'
