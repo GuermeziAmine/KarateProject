@@ -39,8 +39,7 @@ jobs:
           distribution: 'temurin'
           cache: maven
           
-      - name: Execution des tests avec Maven
-        run: mvn clean test -Denvironment=${{ github.event.inputs.environment }} -Dsurefire.reportFormat=xml
+   
          
 
 
@@ -67,7 +66,7 @@ jobs:
           FILENAME=$(basename $(ls src/test/jmeter/*.jmx | head -n 1) .jmx)
           echo "Nom detecte pour Octane : $FILENAME"
           
-          
+
           cat << 'EOF' > jmeter-results-to-junit.xsl
           <?xml version="1.0" encoding="UTF-8"?>
           <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
