@@ -6,6 +6,16 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target Environment'
+        type: choice
+        options:
+          - preprod
+          - staging
+          - dev
+        required: true
+        default: 'preprod'
 
 jobs:
   build:
@@ -13,6 +23,14 @@ jobs:
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
+
+      - name: Start Checksum Node Server
+        run: |
+          echo "Starting Node.js Checksum Server..."
+          cd checksum
+          npm install
+          node index.js &
+          sleep 5 
         
       - name: Configuration du JDK 17
         uses: actions/setup-java@v4
@@ -23,7 +41,9 @@ jobs:
           
       - name: Execution des tests avec Maven
         run: mvn test
-        
+         mvn clean test -Dkarate.env=${{ github.event.inputs.environment || 'preprod' }}
+
+         
       - name: Install JMeter 5.6.3
         run: |
           wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
