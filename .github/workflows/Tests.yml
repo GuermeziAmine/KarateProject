@@ -75,46 +75,48 @@ jobs:
           
       - name: Convert JTL to JUnit XML
         run: |
-          # 1. On récupère dynamiquement le nom du premier test JMX
-          FILENAME=$(basename $(ls src/test/jmeter/*.jmx | head -n 1) .jmx)
-          echo "Nom detecte : $FILENAME"
-          
-          # 2. On définit le fichier JTL source (celui généré par l'étape précédente)
-          # Si vous utilisez ma boucle 'for', le fichier s'appelle results_$FILENAME.jtl
-          JTL_FILE="results_${FILENAME}.jtl"
-          
-          # Vérification si le fichier existe pour éviter l'erreur "failed to load"
-          if [ ! -f "$JTL_FILE" ]; then
-            echo "ERREUR : Le fichier $JTL_FILE n'existe pas. Vérifiez l'étape de Run."
+          # 1. Détection du fichier JTL (on cherche n'importe quel .jtl généré)
+          JTL_FILE=$(ls results_*.jtl | head -n 1)
+          echo "Fichier JTL détecté : $JTL_FILE"
+
+          if [ -z "$JTL_FILE" ]; then
+            echo "ERREUR : Aucun fichier .jtl trouvé."
             exit 1
           fi
 
-          # 3. Création du template XSL
+          # 2. Création du fichier XSL (Notez les ' autour de EOF pour protéger le contenu)
           cat << 'EOF' > jmeter-results-to-junit.xsl
-          <?xml version="1.0" encoding="UTF-8"?>
-          <xsl:stylesheet xmlns:xsl="http://w3.org" version="1.0">
-            <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
-            <xsl:template match="/testResults">
-              <testsuites>
-                <testsuite name="JMeterTests">
-                  <xsl:for-each select="*">
-                    <testcase>
-                      <xsl:attribute name="classname">JMeter.<xsl:value-of select="@lb"/></xsl:attribute>
-                      <xsl:attribute name="name"><xsl:value-of select="@lb"/></xsl:attribute>
-                      <xsl:attribute name="time"><xsl:value-of select="@t div 1000"/></xsl:attribute>
-                      <xsl:if test="@s = 'false'">
-                        <failure>La requete a echoue (Status code <xsl:value-of select="@rc"/>)</failure>
-                      </xsl:if>
-                    </testcase>
-                  </xsl:for-each>
-                </testsuite>
-              </testsuites>
-            </xsl:template>
-          </xsl:stylesheet>
-          EOF
-          
-          # 4. Conversion avec le bon nom de fichier
+            <?xml version="1.0" encoding="UTF-8"?>
+            <xsl:stylesheet xmlns:xsl="http://w3.org" version="1.0">
+                <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
+                <xsl:template match="/testResults">
+                    <testsuites>
+                        <testsuite name="JMeterTests">
+                            <xsl:for-each select="*[@lb]">
+                                <testcase>
+                                    <xsl:attribute name="classname">JMeter</xsl:attribute>
+                                    <xsl:attribute name="name"><xsl:value-of select="@lb"/></xsl:attribute>
+                                    <xsl:attribute name="time"><xsl:value-of select="@t div 1000"/></xsl:attribute>
+                                    <xsl:if test="@s = 'false'">
+                                        <failure>
+                                            <xsl:value-of select="assertionResult/failureMessage"/>
+                                            <xsl:text> (Status code: </xsl:text>
+                                            <xsl:value-of select="@rc"/>
+                                            <xsl:text>)</xsl:text>
+                                        </failure>
+                                    </xsl:if>
+                                </testcase>
+                            </xsl:for-each>
+                        </testsuite>
+                    </testsuites>
+                </xsl:template>
+            </xsl:stylesheet>
+            EOF
+
+          # 3. Exécution de la conversion
           xsltproc jmeter-results-to-junit.xsl "$JTL_FILE" > junit-report.xml
+          echo "Conversion terminée : junit-report.xml généré."
+
 
           
       - name: Upload JUnit Performance Report
