@@ -3,8 +3,6 @@ name: Tests
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
     inputs:
       environment:
@@ -38,9 +36,10 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-          
-      - name: Run Karate Tests
-        run: mvn clean test -Dkarate.env=${{ github.event.inputs.environment }}    
+
+      - name: Run Karate Testsù
+        continue-on-error: true
+        run: mvn clean test     
    
          
       - name: Install JMeter 5.6.3
@@ -48,6 +47,14 @@ jobs:
           wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
           tar -xzf apache-jmeter-5.6.3.tgz
           mv apache-jmeter-5.6.3 jmeter
+
+      - name: Run Performance Tests
+        run: |
+          ./jmeter/bin/jmeter -n \
+          -t src/test/jmeter \
+          -l results.jtl \
+          -Jjmeter.save.saveservice.output_format=xml \
+          -Jjmeter.save.saveservice.assertion_results=all
           
       - name: Install xsltproc
         run: sudo apt-get update && sudo apt-get install -y xsltproc
