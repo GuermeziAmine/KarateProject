@@ -59,11 +59,16 @@ jobs:
 
       - name: Run Performance Tests
         run: |
-          ./jmeter/bin/jmeter -n \
-          -t src/test/jmeter/ThreadGroup.jmx \
-          -l results.jtl \
-          -Jjmeter.save.saveservice.output_format=xml \
-          -Jjmeter.save.saveservice.assertion_results=all
+          # On boucle sur chaque fichier .jmx du dossier
+          for file in src/test/jmeter/*.jmx; do
+            echo "Running test: $file"
+            ./jmeter/bin/jmeter -n \
+            -t "$file" \
+            -l "results_$(basename $file .jmx).jtl" \
+            -Jjmeter.save.saveservice.output_format=xml \
+            -Jjmeter.save.saveservice.assertion_results=all
+          done
+
           
       - name: Install xsltproc
         run: sudo apt-get update && sudo apt-get install -y xsltproc
