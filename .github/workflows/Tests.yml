@@ -60,7 +60,7 @@ jobs:
       - name: Run Performance Tests
         run: |
           ./jmeter/bin/jmeter -n \
-          -t src/test/jmeter \
+          -t src/test/jmeter/ThreadGroup.jmx \
           -l results.jtl \
           -Jjmeter.save.saveservice.output_format=xml \
           -Jjmeter.save.saveservice.assertion_results=all
