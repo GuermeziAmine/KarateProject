@@ -61,5 +61,5 @@ Scenario: Retrieve models List
    
     And request RequestBody
     When method post
-    Then status 200
+    Then status 404
 

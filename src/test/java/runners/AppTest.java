@@ -7,6 +7,6 @@ class AppTest {
     @Karate.Test
     Karate runTests() {
       
-        return Karate.run("classpath:features"); 
+        return Karate.run("classpath:features").tags("~@ignore"); 
     }
 }

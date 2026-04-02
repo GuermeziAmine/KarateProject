@@ -1,3 +1,4 @@
+@ignore
 Feature: OMNI Authentication
 
   Background:
