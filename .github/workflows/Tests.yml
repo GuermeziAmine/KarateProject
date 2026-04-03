@@ -40,11 +40,13 @@ jobs:
           python-version: '3.10'
 
       - name: Installation de Taurus (bzt)
-        run: pip install bzt
+        run: | 
+          pip install bzt
+          pip install urwid==2.1.2
 
       - name: Créer la configuration Taurus
         run: |
-          echo "
+          cat <<EOF > octane_config.yml
           modules:
             jmeter:
               path: jmeter/bin/jmeter
@@ -53,10 +55,11 @@ jobs:
             filename: report_octane.xml
             data-source: sample-labels
             sample-labels: true
-          " > octane_config.yml
+          settings:
+            check-updates: false
+          EOF
 
-      - name:  Exécuter les tests JMeter
-        
+      - name: Exécuter les tests JMeter
         run: bzt src/test/jmeter/PERF_Test1.jmx octane_config.yml -q
 
       - name: Sauvegarde du rapport JUnit (Artifact)
