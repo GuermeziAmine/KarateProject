@@ -42,15 +42,22 @@ jobs:
       - name: Installation de Taurus (bzt)
         run: pip install bzt
 
-      - name: Exécution des tests JMeter via Taurus
-        run: >
-          bzt src/test/jmeter/PERF_Test1.jmx
-          -o modules.jmeter.path=jmeter/bin/jmeter
-          -o reporting.0.module=junit-xml
-          -o reporting.0.filename=report_octane.xml
-          -o reporting.0.data-source=sample-labels
-          -o reporting.0.sample-labels=true
-          -q
+      - name: Créer la configuration Taurus
+        run: |
+          echo "
+          modules:
+            jmeter:
+              path: jmeter/bin/jmeter
+          reporting:
+          - module: junit-xml
+            filename: report_octane.xml
+            data-source: sample-labels
+            sample-labels: true
+          " > octane_config.yml
+
+      - name:  Exécuter les tests JMeter
+        
+        run: bzt src/test/jmeter/PERF_Test1.jmx octane_config.yml -q
 
       - name: Sauvegarde du rapport JUnit (Artifact)
         uses: actions/upload-artifact@v4
