@@ -40,7 +40,7 @@ jobs:
           python-version: '3.10'
 
       - name: Installation de Taurus (bzt)
-        run: | 
+        run: |
           pip install bzt
           pip install urwid==2.1.2
 
@@ -49,7 +49,7 @@ jobs:
           cat <<EOF > octane_config.yml
           modules:
             jmeter:
-              path: jmeter/bin/jmeter
+              path: $PWD/jmeter/bin/jmeter
           reporting:
           - module: junit-xml
             filename: report_octane.xml
@@ -59,19 +59,20 @@ jobs:
             check-updates: false
           EOF
 
-      - name: Exécuter les tests JMeter
-        continue-on-error: true 
-        run: bzt src/test/jmeter/PERF_Test1.jmx octane_config.yml -q
-
-      - name: Normaliser le nom de classe pour ALM Octane
-        
+      - name: Exécuter tous les tests du dossier
         run: |
-          sed -i -E 's/classname="bzt-[0-9]+"/classname="JMeter_API_Tests"/g' report_octane.xml
+          for file in src/test/jmeter/*.jmx; do
+            echo "Exécution de $file..."
+            FILENAME=$(basename "$file" .jmx)
+            bzt "$file" octane_config.yml -q
+            sed -i -E "s/classname=\"bzt-[0-9]+\"/classname=\"$FILENAME\"/g" report_octane.xml
+            mv report_octane.xml "report_${FILENAME}.xml"
+          done
 
       - name: Sauvegarde du rapport JUnit (Artifact)
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: jmeter-test-results
-          path: report_octane.xml
+          path: report_*.xml
           retention-days: 5
