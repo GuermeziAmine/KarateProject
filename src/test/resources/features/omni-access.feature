@@ -2,7 +2,7 @@ Feature: OMNI Basket Service Logic
 
   Background:
     # On sauvegarde l'URL de base pour la réutiliser après l'appel local
-    * def omniUrl = 'https://api-noprod.omnichannel-stage.np.stla-aws.net'
+    * def omniUrl = 'https://api-noprod.omnichannel-stage.np.stla-aws.net' + '/preprod'
     * def authResult = call read('auth.feature')
     * def token = authResult.authToken
 
@@ -43,22 +43,19 @@ Feature: OMNI Basket Service Logic
     # ---------------------------------------------------------
     # 2. GÉNÉRATION DU CHECKSUM (APPEL LOCAL NODE.JS)
     # ---------------------------------------------------------
-    Given url 'http://localhost:3012/checksum'
-    And header Content-Type = 'application/json'
-    And request requestPayload
-    When method post
-    Then status 200
+
 
     # On force en String et on retire TOUS les guillemets pour l'API OMNI
-    * def generatedChecksum = response.toString().replace(/"/g, '')
-    * print 'Checksum nettoyé sans guillemets :', generatedChecksum
+    * def utility = call read('utilities.feature') { RequestBody: #(requestPayload) }
+    * def generatedChecksum = utility.result
+    * print 'Le checksum est :', generatedChecksum
 
 
     # ---------------------------------------------------------
     # 3. APPEL DE L'API OMNI FINALE
     # ---------------------------------------------------------
     Given url omniUrl
-    And path '/preprod/basket/v1/accessories'
+    And path 'basket/v1/accessories'
 
     # Headers standards
     And header Authorization = 'Bearer ' + token
@@ -86,4 +83,39 @@ Feature: OMNI Basket Service Logic
     And match response.message contains "TranscodingBrandService error"
 
     And print 'OMNI Final Expected Response: ', response
+
     
+
+  Scenario: Send accessories for a vehicle 
+
+      * def RequestBody = 
+      """
+      {
+      "idOrder": "44000000007"
+      }
+      """
+
+      * def utility = call read('utilities.feature') { RequestBody: #(RequestBody) }
+      * def generatedChecksum = utility.result
+      * print 'Checksum nettoyé sans guillemets :', generatedChecksum
+      
+      Given url omniUrl
+      And path '/basket/v1/send-accessories-dossier'
+
+     
+      And header Authorization = 'Bearer ' + token
+      And header Accept = 'application/json'
+      And header Content-Type = 'application/json'
+
+      
+      And header brandCode = 'DS'
+      And header marketCode = 'IT'
+      And header languageCode = 'it'
+      And header x-trace-id = 'karate-test-12345'
+   
+      And header x-country-id = generatedChecksum
+      
+      And request RequestBody
+      When method post
+
+      Then status 404
