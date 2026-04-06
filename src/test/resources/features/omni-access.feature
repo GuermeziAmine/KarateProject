@@ -84,9 +84,7 @@ Feature: OMNI Basket Service Logic
 
     And print 'OMNI Final Expected Response: ', response
 
-    
-
-  Scenario: Send accessories for a vehicle 
+Scenario: Send accessories for a vehicle 
 
       * def RequestBody = 
       """

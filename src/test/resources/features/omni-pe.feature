@@ -180,142 +180,170 @@ Scenario: Retrieve Prices of an array of multiple vehicles
      * def RequestBody = 
         """
         {
-            "brand": "AP",
-            "country": "IT",
-            "language": "it",
-            "salesTool": "OMNI_RETAILER",
-            "showFullConfiguration": true,
+            "brand": "83",
+            "country": "AT",
+            "language": "de",
             "source": "B2C",
-            "productStage": "PREVIEW",
-            "promoStaging": false,
             "vehicles": [
                 {
-                "accessories": [
-                    {
-                    "description": "Accessory description",
-                    "discount": 150,
-                    "id": "34126232",
-                    "labourCost": 1000,
-                    "labourTime": 1.5,
-                    "withoutTaxes": 1000
-                    }
-                ],
-                "autoComplete": true,
-                "cafNumber": "VU857594",
-                "color": "0MP00NWP",
-                "commercialOrderNumber": "267200151",
-                "connectedServices": [
-                    {
-                    "description": "Connected Service",
-                    "discount": 150,
-                    "id": "CX5256",
-                    "withoutTaxes": 250
-                    }
-                ],
-                "contracts": [
-                    {
-                    "description": "Contract description",
-                    "discount": 150,
-                    "id": "24632435",
-                    "options": [
-                        {
-                        "id": "125",
-                        "quantity": 2,
-                        "withoutTaxes": 100
-                        }
-                    ],
-                    "withoutTaxes": 500
-                    }
-                ],
-                "conversion": {
-                    "co2": 198,
-                    "description": "Conversion description",
-                    "id": "CONV1",
-                    "optionals": [
-                    {
-                        "id": "XG82",
-                        "withoutTaxes": 200
-                    }
-                    ],
-                    "withoutTaxes": 500
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
                 },
-                "coupon": "24510",
-                "cst_discount": [
-                    {
-                    "applicability": "all",
-                    "cst_discount_opt": [
-                        {
-                        "id": "GB33",
-                        "percentage": true,
-                        "value": 0.05
-                        }
-                    ],
-                    "description": "Special customer offer",
-                    "id": "435672",
-                    "percentage": true,
-                    "type": "FLT",
-                    "value": 0.05
-                    }
-                ],
-                "dealerDiscounts": [
-                    {
-                    "description": "Special dealer offer",
-                    "id": "834515",
-                    "percentage": true,
-                    "value": 0.05
-                    }
-                ],
-                "deductions": "VAT_DED",
-                "expProdDate": "2023-06-01",
-                "passToSalesDate": "2023-06-01",
-                "extraCosts": [
-                    {
-                    "description": "Cleaning service",
-                    "id": "23461",
-                    "percentage": false,
-                    "taxIncluded": false,
-                    "taxable": true,
-                    "value": 100
-                    }
-                ],
-                "factoryOrderNumber": "5852366781",
-                "financing": false,
-                "locationCode": "TO",
-                "mandatoryOptionals": [
-                    "string"
-                ],
-                "nsc_discount": [
-                    "string"
-                ],
-                "offerId": "48279832",
-                "optionals": [
-                    "string"
-                ],
-                "scrapping": true,
-                "source": "B2C",
-                "stock": true,
-                "taxYear": 2023,
-                "tradeIn": true,
-                "tradeInData": {
-                    "trd_amount": 1000,
-                    "trd_badge": "20",
-                    "trd_body": "3128",
-                    "trd_brand": "59",
-                    "trd_energy": "2",
-                    "trd_family": "326",
-                    "trd_gearbox": "1",
-                    "trd_ownershipDate": "2015-09-20",
-                    "trd_registrationDate": "2010-07-15"
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
                 },
-                "trdApplicability": "VO",
-                "trim": "0P430RFT",
-                "version": "2PK0P1JESFB0A0F0",
-                "vin": "VF3M4DGZUNS041736",
-                "zipCode": "10127"
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },{
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },{
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },{
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
+                },
+                {
+                    "color": "414",
+                    "engine": "EXC797",
+                    "fuel": "3",
+                    "optionals": [],
+                    "trim": "034",
+                    "version": "630.PRP.4.000"
                 }
             ]
-            }
- 
+        }
        """
    
     * def utility = call read('utilities.feature') { RequestBody: #(RequestBody) }
@@ -337,13 +365,13 @@ Scenario: Retrieve Prices of an array of multiple vehicles
     And request RequestBody
     When method post
 
-    Then status 404
+    Then status 200
 
 Scenario: Apply price adjustments on vehicule
 
      * def RequestBody = 
         """
-            {
+        {
             "accessories": [
                 {
                 "description": "Accessory description",
@@ -506,7 +534,7 @@ Scenario: Retrieve the wrapper of the deductions
         """
        {
         "country": "IT",
-        "brand": "AC",
+        "brand": "GG",
         "vehicleUse": "PV",
         "source": "B2B",
         "language": "it"
@@ -533,38 +561,37 @@ Scenario: Retrieve the wrapper of the deductions
     And request RequestBody
     When method post
 
-    Then status 404
+    Then status 200
 
 Scenario: Retrieve the pricing for associated service contracts
 
      * def RequestBody = 
         """
         {
-            "brand": "string",
-            "contracts": [
-                {
-                "description": "string",
-                "discount": 0,
-                "id": "string",
-                "options": [
-                    {
-                    "id": "string",
-                    "quantity": 0,
-                    "withoutTaxes": 0
-                    }
-                ],
-                "withoutTaxes": 0
-                }
-            ],
-            "country": "string",
-            "deductions": "string",
-            "engine": "string",
-            "fuel": "string",
-            "language": "string",
-            "locationCode": "string",
-            "source": "string",
-            "vehicleUse": "string"
-            }
+            "brand":"GG",
+            "contracts":[{
+                "description":"EXTENDED CARE PREMIUM    ",
+                "discount":null,
+                "id":"A",
+                "options":[],
+                "withoutTaxes":176.76
+            },
+            {
+                "description":"COMPLETE CARE PLUS",
+                "discount":null,
+                "id":"C","options":[],
+                "withoutTaxes":1291.68
+            }],
+
+            "country":"BE",
+            "deductions":null,
+            "engine":"ESS00110",
+            "fuel":"",
+            "language":"fr",
+            "locationCode":"",
+            "source":"B2C",
+            "vehicleUse":"PV"
+        }
  
        """
    
@@ -587,7 +614,7 @@ Scenario: Retrieve the pricing for associated service contracts
     And request RequestBody
     When method post
 
-    Then status 404
+    Then status 200
 
 Scenario: Retrieve the total price for a list of vehicle accessories
 
@@ -604,7 +631,7 @@ Scenario: Retrieve the total price for a list of vehicle accessories
                 "withoutTaxes": 1000
                 }
             ],
-            "brand": "AP",
+            "brand": "GG",
             "country": "IT",
             "deductions": "26",
             "engine": "MK",
@@ -636,4 +663,4 @@ Scenario: Retrieve the total price for a list of vehicle accessories
     And request RequestBody
     When method post
 
-    Then status 404
+    Then status 200
