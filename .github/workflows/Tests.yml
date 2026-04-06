@@ -101,3 +101,10 @@ jobs:
           name: jmeter-test-results
           path: report_*.xml
           retention-days: 5
+
+      - name: Sauvegarde des rapports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports-${{ github.event.inputs.environment || 'preprod'}}
+          path: target/surefire-reports/
