@@ -18,6 +18,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env :
+      environement: ${{ github.event.inputs.environment || 'preprod' }}
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
@@ -37,7 +39,7 @@ jobs:
           node index.js &
           sleep 5 
 
-      - name: Run Karate API Tests (Practice Only)
+      - name: Run Karate API Tests 
         run: |
           echo "Running Karate Tests on environment: ${{ github.event.inputs.environment || 'preprod' }}"
           mvn clean test \
