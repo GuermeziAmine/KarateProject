@@ -19,7 +19,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env :
-      environement: ${{ github.event.inputs.environment || 'preprod' }}
+      environment: ${{ github.event.inputs.environment || 'preprod' }}
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
