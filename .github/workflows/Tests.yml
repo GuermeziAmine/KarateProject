@@ -19,16 +19,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment || 'preprod' }}
-    env :
-      environment: ${{ github.event.inputs.environment || 'preprod' }}
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
-
-      - name: Log workflow inputs for Octane
-        run: |
-          echo "execution_parameter:: {\"environment\":\"${{ github.event.inputs.environment || 'preprod' }}\"}"
-
 
       - name: Configuration du JDK 17
         uses: actions/setup-java@v4
@@ -37,6 +30,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Log workflow inputs for Octane
+        run: |
+          echo "execution_parameter:: {\"environment\":\"${{ github.event.inputs.environment || 'preprod' }}\"}"
+
+          
       - name: Start Checksum Node Server
         run: |
           echo "Starting Node.js Checksum Server..."
@@ -47,6 +45,7 @@ jobs:
 
       - name: Run Karate API Tests 
         run: |
+          echo "execution_parameter:: {\"environment\":\"${{ github.event.inputs.environment || 'preprod' }}\"}"
           echo "Running Karate Tests on environment: ${{ github.event.inputs.environment || 'preprod' }}"
           mvn clean test \
             -Dkarate.env=${{ github.event.inputs.environment || 'preprod' }} \
