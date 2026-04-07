@@ -1,8 +1,8 @@
 Feature: OMNI Basket Service Logic
 
   Background:
-    # On sauvegarde l'URL de base pour la réutiliser après l'appel local
-    * def omniUrl = 'https://api-noprod.omnichannel-stage.np.stla-aws.net' + '/preprod'
+    
+    * def omniUrl = baseUrl + env
     * def authResult = call read('auth.feature')
     * def token = authResult.authToken
 

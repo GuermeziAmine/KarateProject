@@ -24,6 +24,10 @@ jobs:
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
+        
+      - name: Log workflow inputs for Octane
+        run: |
+          echo "execution_parameter:: {\"environment\":\"${{ github.event.inputs.environment || 'preprod' }}\"}"
 
       - name: Report build parameters to Octane
         run: |
