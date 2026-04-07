@@ -24,14 +24,11 @@ jobs:
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
-        
+
       - name: Log workflow inputs for Octane
         run: |
           echo "execution_parameter:: {\"environment\":\"${{ github.event.inputs.environment || 'preprod' }}\"}"
 
-      - name: Report build parameters to Octane
-        run: |
-          echo "environment=${{ github.event.inputs.environment || 'preprod' }}" >> $GITHUB_ENV
 
       - name: Configuration du JDK 17
         uses: actions/setup-java@v4
@@ -105,7 +102,7 @@ jobs:
             mv report_octane.xml "report_${FILENAME}.xml"
           done
 
-      - name: Sauvegarde du rapport JUnit (Artifact)
+      - name: Sauvegarde du rapport JUnit 
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -120,15 +117,5 @@ jobs:
           name: surefire-reports-${{ github.event.inputs.environment || 'preprod'}}
           path: target/surefire-reports/
       
-      - name: Save environment parameter
-        if: always()
-        run: |
-          mkdir -p ./octane-params
-          echo "environment=${{ github.event.inputs.environment || 'preprod' }}" > ./octane-params/params.properties
+ 
 
-      - name: Upload environment param
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: octane-params
-          path: ./octane-params/params.properties
