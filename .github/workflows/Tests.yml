@@ -24,7 +24,7 @@ jobs:
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
-        
+
       - name: Report build parameters to Octane
         run: |
           echo "environment=${{ github.event.inputs.environment || 'preprod' }}" >> $GITHUB_ENV
@@ -115,3 +115,16 @@ jobs:
         with:
           name: surefire-reports-${{ github.event.inputs.environment || 'preprod'}}
           path: target/surefire-reports/
+      
+      - name: Save environment parameter
+        if: always()
+        run: |
+          mkdir -p ./octane-params
+          echo "environment=${{ github.event.inputs.environment || 'preprod' }}" > ./octane-params/params.properties
+
+      - name: Upload environment param
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: octane-params
+          path: ./octane-params/params.properties
