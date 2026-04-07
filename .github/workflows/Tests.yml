@@ -42,7 +42,9 @@ jobs:
           npm install
           node index.js &
           sleep 5 
-
+      - name: Expose Environment to Octane
+        run: echo "environment=${{ github.event.inputs.environment || 'preprod' }}" >> $GITHUB_ENV
+        
       - name: Run Karate API Tests 
         run: |
           echo "execution_parameter:: {\"environment\":\"${{ github.event.inputs.environment || 'preprod' }}\"}"
