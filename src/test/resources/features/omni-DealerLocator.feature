@@ -9,47 +9,21 @@ Scenario: Retrieve all dealer details for a specific geolocal info
 
       * def RequestBody = 
         """
-        {
-            "brand": "string",
-            "marketCode": "string",
-            "consumer": "string",
-            "country": "string",
-            "culture": "string",
-            "dateDebut": "string",
-            "dateFin": "string",
-            "agentsExclude": true,
-            "agentsExcludeAP": true,
-            "brandActivity": "string",
-            "criterias": "string",
-            "criteriasExclude": "string",
-            "department": "string",
-            "details": "string",
-            "getMultimarque": true,
-            "importerCode": "string",
-            "importerName": "string",
-            "indicatorsActivities": "string",
-            "latitude": "string",
-            "lcdv2": "string",
-            "longitude": "string",
-            "minDVN": 0,
-            "minPDV": 0,
-            "name": "string",
-            "pageNumber": 0,
-            "pageSize": 0,
-            "rMax": 0,
-            "rMin": 0,
-            "RRDI": "string",
-            "rStep": 0,
-            "region": "string",
-            "resultMax": 0,
-            "searchType": "string",
-            "siteGeo": "string",
-            "sort": "string",
-            "unit": "string",
-            "viewOnlyAgents": true,
-            "viewOnlyAgentsAP": true,
-            "withContract": true
-            }
+       {
+    "consumer": "DCR.WEB.AC",
+    "country": "IT",
+    "culture": "it",
+    "criterias": "VN",
+    "criteriasExclude": "0",
+    "details": "max",
+    "latitude": 44.837789,
+    "longitude": -0.5791799999999512,
+    "rMax": 200000,
+    "resultMax": 50,
+    "sort": "distance",
+    "unit": "km",
+    "brand": "83"
+}
         """
 
       * def utility = call read('utilities.feature') { RequestBody: #(RequestBody) }
@@ -64,7 +38,10 @@ Scenario: Retrieve all dealer details for a specific geolocal info
       And header Accept = 'application/json'
       And header Content-Type = 'application/json'    
       
-      And header marketCode = 'IT'     
+      
+      And header brandCode = 83
+      And header marketCode = 3104
+      And header languageCode = 3  
       And header x-trace-id = 'karate-test-12345'
    
       And header x-country-id = generatedChecksum
@@ -72,21 +49,19 @@ Scenario: Retrieve all dealer details for a specific geolocal info
       And request RequestBody
       When method post
 
-      Then status 404
+      Then status 200
 
 Scenario: Retrieve all dealer details  
 
       * def RequestBody = 
         """
-        {
-            "country": "FR",
-            "culture": "fr",
-            "consumer": "DCR.WEB.AC",
-            "brand": "AC",
-            "brandActivity": "AC",
-            "getMultimarque": false,
-            "siteGeo": "0000049523"
-        }
+      {
+      "brand":"SS",
+      "consumer":"OMNI",
+      "country":"BE",
+      "culture":"fr",
+      "siteGeo":"0000062777"
+      }
        """
       * def utility = call read('utilities.feature') { RequestBody: #(RequestBody) }
       * def generatedChecksum = utility.result
@@ -99,7 +74,10 @@ Scenario: Retrieve all dealer details
       And header Authorization = 'Bearer ' + token
       And header Accept = 'application/json'
       And header Content-Type = 'application/json'    
-          
+
+      And header brandCode = 83
+      And header marketCode = 3104
+      And header languageCode = 3      
       And header x-trace-id = 'karate-test-12345'
    
       And header x-country-id = generatedChecksum

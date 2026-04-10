@@ -232,7 +232,7 @@ Scenario: retrieve the carlines
       * print 'Checksum nettoyé sans guillemets :', generatedChecksum
       
       Given url omniUrl
-      And path '/backoffice/v1/reservation-extension'
+      And path '/backoffice/v1/carlines'
 
       And header Authorization = 'Bearer ' + token
       And header Accept = 'application/json'    
