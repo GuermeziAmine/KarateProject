@@ -2,7 +2,7 @@ Feature: OMNI Basket Service Logic
 
   Background:
     
-    * def omniUrl = baseUrl + env
+    * def omniUrl = 'https://api-noprod.omnichannel-stage.np.stla-aws.net' + '/preprod'
     * def authResult = call read('auth.feature')
     * def token = authResult.authToken
 
