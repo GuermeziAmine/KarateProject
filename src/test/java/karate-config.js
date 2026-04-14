@@ -2,16 +2,20 @@ function fn() {
   var config = {
     baseUrl: 'https://api-noprod.omnichannel-stage.np.stla-aws.net',
     env: '/preprod',
-    // On construit l'URL complète ici une bonne fois pour toutes
     omniUrl: 'https://api-noprod.omnichannel-stage.np.stla-aws.net/preprod'
   };
 
-  // callSingle va exécuter auth.feature UNE SEULE FOIS pour toute la session
-  // J'utilise le chemin exact qui apparaissait dans ton message d'erreur
-  var authResult = karate.callSingle('classpath:features/auth.feature', config);
-  
-  // On stocke le token dans la configuration globale
-  config.token = authResult.authToken;
+  try {
+    // On essaie de récupérer le token
+    var authResult = karate.callSingle('classpath:features/auth.feature', config);
+    config.token = authResult.authToken;
+    karate.log('Token récupéré avec succès !');
+  } catch (e) {
+    // Si AWS nous bloque (403), on attrape l'erreur au lieu de crasher
+    karate.log('ERREUR DANS LE CONFIG : auth.feature a échoué (probablement le 403 AWS).', e);
+    // On met une fausse valeur pour que "omniUrl" soit quand même envoyé aux tests
+    config.token = 'ERREUR_TOKEN';
+  }
 
   return config;
 }
