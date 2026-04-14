@@ -1,8 +1,6 @@
 Feature: OMNI Services Logic
 
-Background:
-    
-      * print 'Token utilisé pour ce test :', token
+
 Scenario: Returns the service contract family compatibility
 
       * def RequestBody = 

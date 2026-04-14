@@ -1,8 +1,6 @@
 Feature: OMNI Stock Logic 
 
- Background:
 
-    * print 'Token utilisé pour ce test :', token
 
 
 

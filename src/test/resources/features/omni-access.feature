@@ -1,8 +1,6 @@
 Feature: OMNI Basket Service Logic
 
-  Background:
-    
-      * print 'Token utilisé pour ce test :', token
+
 
   Scenario: Retrieve accessories for a vehicle with Checksum
 

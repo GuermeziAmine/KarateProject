@@ -1,7 +1,6 @@
 Feature: OMNI Promo  Service Logic
 
-    Background:
-        * print 'Token utilisé pour ce test :', token
+
 
 Scenario: Extend Reservation 
 

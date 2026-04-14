@@ -1,8 +1,5 @@
 Feature: OMNI Bank Service Logic
 
-     Background:
-   
-        * print 'Token utilisé pour ce test :', token
 
 Scenario: Create a new payment V1
 

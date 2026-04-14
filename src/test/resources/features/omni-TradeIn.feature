@@ -1,8 +1,6 @@
 Feature: OMNI TradeIn Service Logic
 
-  Background:
-    # On sauvegarde l'URL de base pour la réutiliser après l'appel local
-      * print 'Token utilisé pour ce test :', token
+
 Scenario: Retrieve Vehicule Information based on VIN
          
       

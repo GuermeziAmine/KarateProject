@@ -1,7 +1,6 @@
 Feature: OMNI Promo  Service Logic
 
-    Background:
-        * print 'Token utilisé pour ce test :', token
+
 Scenario: Retrieve the list of Level 2 Delegation grid discounts for B2B accounts  
 
       * def RequestBody = 

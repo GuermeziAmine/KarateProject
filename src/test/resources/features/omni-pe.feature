@@ -1,7 +1,6 @@
 Feature: OMNI PE  Service Logic
 
-    Background:
-        * print 'Token utilisé pour ce test :', token
+
 
 Scenario: Retrieve Prices of Vehicule 
   

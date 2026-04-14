@@ -1,7 +1,6 @@
 Feature: OMNI DealerLocator Service Logic
 
-    Background:
-        * print 'Token utilisé pour ce test :', token
+
 
 Scenario: Retrieve all dealer details for a specific geolocal info 
 

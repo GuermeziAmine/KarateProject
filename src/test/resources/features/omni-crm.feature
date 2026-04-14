@@ -1,8 +1,6 @@
 Feature: OMNI CRM Service Logic
      
-     Background:
-   
-        * print 'Token utilisé pour ce test :', token
+
 
 Scenario:  searches customer entities based on a set of filter criteria
 

@@ -1,7 +1,5 @@
 Feature: OMNI Finco Service Logic
 
-    Background:
-         * print 'Token utilisé pour ce test :', token
 Scenario: Retrieve the increase price for each components of a configuration
 
     * def RequestBody = 

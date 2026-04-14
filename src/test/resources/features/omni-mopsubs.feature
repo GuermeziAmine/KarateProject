@@ -1,7 +1,6 @@
 Feature: OMNI Magneto Service Logic
 
-    Background:
-        * print 'Token utilisé pour ce test :', token
+
 Scenario: Validate final status for vehicle trade-in
     
     * def RequestBody = "COMPLETED"

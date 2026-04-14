@@ -1,7 +1,6 @@
 Feature: OMNI MOP Service Logic
 
-    Background:
-        * print 'Token utilisé pour ce test :', token
+
 Scenario: Create a new MOP
 
    * def RequestBody = 

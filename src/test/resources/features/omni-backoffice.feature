@@ -1,8 +1,5 @@
 Feature: OMNI BO Service Logic
 
-    Background:
-    
-      * print 'Token utilisé pour ce test :', token
 
 Scenario: retrieve  the configurations from the BO
 

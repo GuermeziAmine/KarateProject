@@ -1,7 +1,6 @@
 Feature: OMNI Images Service Logic
 
-    Background:
-        *  print 'Token utilisé pour ce test :', token
+
 
 Scenario: Retrieve url images from Asset Picker or V3D  
 

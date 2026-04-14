@@ -1,8 +1,6 @@
 Feature: OMNI Wishlist Service Logic
 
-  Background:
-    
-        * print 'Token utilisé pour ce test :', token
+
 Scenario: Save a Configuration in wishlist
 
      * def RequestBody = 
