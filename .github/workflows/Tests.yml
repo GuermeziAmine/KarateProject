@@ -32,7 +32,6 @@ jobs:
           cache: maven
 
 
-
       - name: Log workflow inputs for Octane
         run: |
           echo "execution_parameter:: {\"environment\":\"${{ github.event.inputs.environment || 'preprod' }}\"}"
@@ -46,24 +45,14 @@ jobs:
           node index.js &
           sleep 5 
 
-      - name: Expose Environment to Octane
-        run: echo "environment=${{ github.event.inputs.environment || 'preprod' }}" >> $GITHUB_ENV
-
-
         
       - name: Run Karate API Tests 
+        if: always()
         run: |
-          export OCTANE_TEST_RUN_ENVIRONMENT=${{ github.event.inputs.environment || 'preprod' }}
-          echo "Running Karate Tests on environment: $OCTANE_TEST_RUN_ENVIRONMENT"
+          echo "Running Karate Tests on environment: ${{ github.event.inputs.environment || 'preprod' }}"
+          mvn clean test -Dkarate.env=${{ github.event.inputs.environment || 'preprod' }}
 
-          mvn clean test \
-            -Dkarate.env=$OCTANE_TEST_RUN_ENVIRONMENT \
-            -Denv=$OCTANE_TEST_RUN_ENVIRONMENT \
-            -Dkarate.options="classpath:features/Practice"
 
-      - name: DEBUG ENV
-        run: |
-          echo "ENV SENT TO OCTANE: $OCTANE_TEST_RUN_ENVIRONMENT"
     
       - name: Cache JMeter
         id: cache-jmeter
