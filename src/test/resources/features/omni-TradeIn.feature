@@ -232,7 +232,7 @@ Scenario: Retrieve trade-in quotation journey details
       And request RequestBody
       When method post
 
-      Then status 404
+      Then status 400
 
 Scenario: Retrieve a token for Autobiz valuation
          

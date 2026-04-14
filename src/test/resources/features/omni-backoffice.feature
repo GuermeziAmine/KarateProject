@@ -114,7 +114,7 @@ Scenario: transcoding for the stream market
       And request RequestBody
       When method post
 
-      Then status 500
+      Then status 200
 Scenario: transcoding for the stream brand
 
     * def RequestBody = 

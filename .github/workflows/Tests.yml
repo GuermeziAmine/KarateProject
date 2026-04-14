@@ -55,6 +55,7 @@ jobs:
 
     
       - name: Cache JMeter
+        if: always()      
         id: cache-jmeter
         uses: actions/cache@v3
         with:
@@ -70,16 +71,19 @@ jobs:
           rm apache-jmeter-5.6.3.tgz
 
       - name: Configuration de Python
+        if: always()      
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
       - name: Installation de Taurus (bzt)
+        if: always()
         run: |
           pip install bzt
           pip install urwid==2.1.2
 
       - name: Créer la configuration Taurus
+        if: always()
         run: |
           cat <<EOF > octane_config.yml
           modules:
@@ -95,6 +99,7 @@ jobs:
           EOF
 
       - name: Exécuter tous les tests du dossier
+        if: always()
         run: |
           for file in src/test/jmeter/*.jmx; do
             echo "Exécution de $file..."

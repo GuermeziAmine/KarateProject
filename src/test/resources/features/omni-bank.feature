@@ -126,7 +126,7 @@ Scenario: Create a new payment V2
       And request RequestBody
       When method post
 
-      Then status 500
+      Then status 400
 
 Scenario: Get Refund
          

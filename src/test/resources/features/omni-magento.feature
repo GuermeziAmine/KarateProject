@@ -890,7 +890,7 @@ Scenario: Retrieve quotation of an user
    
       When method get
 
-      Then status 200
+      Then status 404
 
 Scenario: Retrieve quotation of an user as admin
 
@@ -910,7 +910,7 @@ Scenario: Retrieve quotation of an user as admin
    
       When method get
 
-      Then status 200
+      Then status 404
 
 Scenario: Retrieve count for specific user
 

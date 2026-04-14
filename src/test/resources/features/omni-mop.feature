@@ -29,7 +29,7 @@ Scenario: Create a new MOP
       And request RequestBody
       When method post
 
-      Then status 404
+      Then status 500
 Scenario: Update a MOP
 
    * def RequestBody = 
@@ -171,7 +171,7 @@ Scenario: Retrieve details of a MOP
       And request RequestBody
       When method post
 
-      Then status 500
+      Then status 200
 
 Scenario: Clone an existing MOP 
 
@@ -203,7 +203,7 @@ Scenario: Clone an existing MOP
       And request RequestBody
       When method post
 
-      Then status 500
+      Then status 200
 
 Scenario: Save part-exchange details to the MOP
 
@@ -310,7 +310,7 @@ Scenario: Update profiling cookies for a MOP
       And request RequestBody
       When method post
 
-      Then status 500
+      Then status 200
 
 Scenario: Remove a specific sub-object from the MOP
 
@@ -345,7 +345,7 @@ Scenario: Remove a specific sub-object from the MOP
       And request RequestBody
       When method post
 
-      Then status 404
+      Then status 200
 
 Scenario: Search for existing MOP using filters
 

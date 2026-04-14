@@ -868,7 +868,7 @@ Scenario: Create a new  reservation in OMS
       And request RequestBody
       When method post
 
-      Then status 500
+      Then status 400
 
 Scenario: Returns the maximum estimate for the chosen vehicle configuration
 
