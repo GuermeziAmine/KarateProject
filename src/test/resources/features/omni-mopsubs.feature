@@ -1,9 +1,7 @@
 Feature: OMNI Magneto Service Logic
 
     Background:
-        * def omniUrl = 'https://api-noprod.omnichannel-stage.np.stla-aws.net' + '/dev'
-        * def authResult = call read('auth.feature')
-        * def token = authResult.authToken
+        * print 'Token utilisé pour ce test :', token
 Scenario: Validate final status for vehicle trade-in
     
     * def RequestBody = "COMPLETED"

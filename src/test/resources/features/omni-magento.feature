@@ -2,9 +2,7 @@ Feature: OMNI Magento Service Logic
 
   Background:
     
-    * def omniUrl = 'https://api-noprod.omnichannel-stage.np.stla-aws.net' + '/dev'
-    * def authResult = call read('auth.feature')
-    * def token = authResult.authToken
+        * print 'Token utilisé pour ce test :', token
 Scenario: Save quotation of an user
 
       * def RequestBody = 

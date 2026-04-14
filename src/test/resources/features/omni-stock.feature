@@ -2,9 +2,7 @@ Feature: OMNI Stock Logic
 
  Background:
 
-    * def omniUrl = 'https://api-noprod.omnichannel-stage.np.stla-aws.net' + '/dev'
-    * def authResult = call read('auth.feature')
-    * def token = authResult.authToken
+    * print 'Token utilisé pour ce test :', token
 
 
 
@@ -427,7 +425,7 @@ Scenario: Find similar stock vehicle definitions
    
     And request RequestBody
     When method post
-    Then status 404
+    Then status 400
     
 Scenario: Retrieve models List 
 

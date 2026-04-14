@@ -2,9 +2,7 @@ Feature: OMNI Wishlist Service Logic
 
   Background:
     
-    * def omniUrl = 'https://api-noprod.omnichannel-stage.np.stla-aws.net' + '/dev'
-    * def authResult = call read('auth.feature')
-    * def token = authResult.authToken
+        * print 'Token utilisé pour ce test :', token
 Scenario: Save a Configuration in wishlist
 
      * def RequestBody = 
@@ -244,7 +242,7 @@ Scenario: Save a Configuration in wishlist
                             "type": "V3D"
                         },
                         {
-                            "link": "https://dev-www.jeep.be/fr/omni/configurateur?commercialModelCode=4200&mvss=57420L2E0000&color=CL-111&interior=IN-1B7&wheels=8-1M0",
+                            "link": "https://preprod-www.jeep.be/fr/omni/configurateur?commercialModelCode=4200&mvss=57420L2E0000&color=CL-111&interior=IN-1B7&wheels=8-1M0",
                             "type": "PRODUCT"
                         }
                     ],
