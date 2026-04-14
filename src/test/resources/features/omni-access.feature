@@ -7,6 +7,7 @@ Feature: OMNI Basket Service Logic
     # ---------------------------------------------------------
     # 1. DEFINITION OF PAYLOAD
     # ---------------------------------------------------------
+    
     * def requestPayload =
     """
     {
