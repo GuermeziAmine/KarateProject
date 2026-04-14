@@ -9,8 +9,5 @@ class AppTest {
       
         return Karate.run("classpath:features").tags("~@ignore"); 
     }
-    @Karate.Test
-    Karate testBusiness() {
-       return Karate.run("classpath:features/Practice");
-    }
+
 }
