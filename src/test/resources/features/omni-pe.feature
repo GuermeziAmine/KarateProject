@@ -1,7 +1,7 @@
 Feature: OMNI PE  Service Logic
 
     Background:
-        * def omniUrl = 'https://api-noprod.omnichannel-stage.np.stla-aws.net' + '/preprod'
+        * def omniUrl = 'https://api-noprod.omnichannel-stage.np.stla-aws.net' + '/dev'
         * def authResult = call read('auth.feature')
         * def token = authResult.authToken
 
@@ -526,7 +526,7 @@ Scenario: Apply price adjustments on vehicule
     And request RequestBody
     When method post
 
-    Then status 404
+    Then status 400
 
 Scenario: Retrieve the wrapper of the deductions
 

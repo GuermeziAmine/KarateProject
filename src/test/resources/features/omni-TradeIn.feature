@@ -2,7 +2,7 @@ Feature: OMNI TradeIn Service Logic
 
   Background:
     # On sauvegarde l'URL de base pour la réutiliser après l'appel local
-    * def omniUrl = 'https://api-noprod.omnichannel-stage.np.stla-aws.net' + '/preprod'
+    * def omniUrl = 'https://api-noprod.omnichannel-stage.np.stla-aws.net' + '/dev'
     * def authResult = call read('auth.feature')
     * def token = authResult.authToken
 Scenario: Retrieve Vehicule Information based on VIN

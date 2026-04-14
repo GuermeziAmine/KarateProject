@@ -2,7 +2,7 @@ Feature: OMNI Services Logic
 
 Background:
     
-    * def omniUrl = 'https://api-noprod.omnichannel-stage.np.stla-aws.net' + '/preprod'
+    * def omniUrl = 'https://api-noprod.omnichannel-stage.np.stla-aws.net' + '/dev'
     * def authResult = call read('auth.feature')
     * def token = authResult.authToken
 Scenario: Returns the service contract family compatibility
