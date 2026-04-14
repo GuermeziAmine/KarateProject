@@ -11,6 +11,6 @@ class AppTest {
     }
     @Karate.Test
     Karate testBusiness() {
-       return Karate.run("classpath:features/omni-access.feature");
+       return Karate.run("classpath:features/Practice");
     }
 }
