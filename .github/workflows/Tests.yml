@@ -131,10 +131,10 @@ jobs:
           zip -r karate-results.zip target/karate-reports/*.karate-json.txt
 
           # 2. Récupération du jeton (Correction de l'URL ici)
-          TOKEN=$(curl -X POST "https://microsoftonline.com{{ secrets.AZURE_TENANT_ID }}/oauth2/v2.0/token" \
-            -d "client_id=${{ secrets.AZURE_CLIENT_ID }}" \
+          TOKEN=$(curl -X POST "https://microsoftonline.com{{secrets.AZURE_TENANT_ID}}/oauth2/v2.0/token" \
+            -d "client_id=${{secrets.AZURE_CLIENT_ID}}" \
             -d "scope=https://microsoft.com" \
-            -d "client_secret=${{ secrets.AZURE_CLIENT_SECRET }}" \
+            -d "client_secret=${{secrets.AZURE_CLIENT_SECRET}}" \
             -d "grant_type=client_credentials" | jq -r .access_token)
 
           # 3. Envoi vers OneDrive
