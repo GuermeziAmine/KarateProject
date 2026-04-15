@@ -63,46 +63,46 @@ jobs:
           name: surefire-reports
           path: target/surefire-reports/
       
-      - name: Upload Karate Results to OneDrive via Microsoft Graph
+      - name: Test Connexion OneDrive (Fichier Témoin)
         if: always()
         env:
-          TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          USER_EMAIL: "minouguermezi170@gmail.com" # ⚠️ À remplacer par votre adresse mail OneDrive
+                TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+                CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+                CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+                USER_EMAIL: "minouguermezi170@gmail.com"
         run: |
-          # 1. Définition du fichier cible (pas de ZIP)
-          FILE_PATH="target/karate-reports/karate-summary-json.txt"
-          FILE_NAME="karate-summary-json.txt"
-          
-          # Vérification que le fichier existe bien avant d'envoyer
-          if [ ! -f "$FILE_PATH" ]; then
-            echo "Le fichier de rapport n'existe pas : $FILE_PATH"
-            exit 1
-          fi
+                # 1. Création d'un fichier de test bidon
+                echo "Test d'upload automatique depuis GitHub Actions le $(date)" > test_pfe.txt
+                
+                echo "Tentative de connexion pour le fichier : test_pfe.txt"
 
-          # 2. Récupération du jeton (Correction de l'URL et du scope)
-          echo "Demande du jeton d'accès..."
-          TOKEN=$(curl -s -X POST "https://login.microsoftonline.com/$TENANT_ID/oauth2/v2.0/token" \
-            -d "client_id=$CLIENT_ID" \
-            -d "scope=https://graph.microsoft.com/.default" \
-            -d "client_secret=$CLIENT_SECRET" \
-            -d "grant_type=client_credentials" | jq -r .access_token)
+                # 2. Récupération du jeton
+                TOKEN=$(curl -s -X POST "https://login.microsoftonline.com/$TENANT_ID/oauth2/v2.0/token" \
+                  -d "client_id=$CLIENT_ID" \
+                  -d "scope=https://graph.microsoft.com/.default" \
+                  -d "client_secret=$CLIENT_SECRET" \
+                  -d "grant_type=client_credentials" | jq -r .access_token)
 
-          if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
-            echo "Erreur : Impossible de récupérer le jeton d'accès."
-            exit 1
-          fi
+                if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
+                  echo "❌ ERREUR : Impossible de récupérer le jeton. Vérifiez vos Secrets GitHub."
+                  exit 1
+                fi
 
-          # 3. Envoi vers OneDrive (Correction de l'URL vers Microsoft Graph API)
-          echo "Envoi du fichier vers OneDrive..."
-          curl -s -X PUT "https://graph.microsoft.com/v1.0/users/$USER_EMAIL/drive/root:/PFE_Results/$FILE_NAME:/content" \
-            -H "Authorization: Bearer $TOKEN" \
-            -H "Content-Type: text/plain" \
-            --data-binary @"$FILE_PATH"
-            
-          echo -e "\nUpload terminé !"
+                # 3. Envoi vers OneDrive
+                RESPONSE=$(curl -s -w "%{http_code}" -X PUT "https://graph.microsoft.com/v1.0/users/$USER_EMAIL/drive/root:/PFE_Results/test_pfe.txt:/content" \
+                  -H "Authorization: Bearer $TOKEN" \
+                  -H "Content-Type: text/plain" \
+                  --data-binary @"test_pfe.txt")
 
+                HTTP_CODE=$(echo "$RESPONSE" | tail -c 3)
+                
+                if [ "$HTTP_CODE" == "200" ] || [ "$HTTP_CODE" == "201" ]; then
+                  echo "✅ SUCCÈS ! Le fichier test_pfe.txt a été envoyé. Code: $HTTP_CODE"
+                else
+                  echo "❌ ÉCHEC de l'envoi. Code HTTP : $HTTP_CODE"
+                  echo "Réponse complète : $RESPONSE"
+                  exit 1
+                fi
 
 
 
