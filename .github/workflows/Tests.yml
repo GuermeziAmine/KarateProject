@@ -61,48 +61,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: surefire-reports
-          path: target/surefire-reports/
+          path: |
+            target/karate-reports/
+            target/surefire-reports/
       
-      - name: Test Connexion OneDrive (Fichier Témoin)
-        if: always()
-        env:
-                TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-                CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-                CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-                USER_EMAIL: 657d90b1-1547-498c-8370-f3280c5815a6
-        run: |
-                # 1. Création d'un fichier de test bidon
-                echo "Test d'upload automatique depuis GitHub Actions le $(date)" > test_pfe.txt
-                
-                echo "Tentative de connexion pour le fichier : test_pfe.txt"
-
-                # 2. Récupération du jeton
-                TOKEN=$(curl -s -X POST "https://login.microsoftonline.com/$TENANT_ID/oauth2/v2.0/token" \
-                  -d "client_id=$CLIENT_ID" \
-                  -d "scope=https://graph.microsoft.com/.default" \
-                  -d "client_secret=$CLIENT_SECRET" \
-                  -d "grant_type=client_credentials" | jq -r .access_token)
-
-                if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
-                  echo "❌ ERREUR : Impossible de récupérer le jeton. Vérifiez vos Secrets GitHub."
-                  exit 1
-                fi
-
-                # 3. Envoi vers OneDrive
-                RESPONSE=$(curl -s -w "%{http_code}" -X PUT "https://graph.microsoft.com/v1.0/users/$USER_EMAIL/drive/root:/PFE_Results/test_pfe.txt:/content" \
-                  -H "Authorization: Bearer $TOKEN" \
-                  -H "Content-Type: text/plain" \
-                  --data-binary @"test_pfe.txt")
-
-                HTTP_CODE=$(echo "$RESPONSE" | tail -c 3)
-                
-                if [ "$HTTP_CODE" == "200" ] || [ "$HTTP_CODE" == "201" ]; then
-                  echo "✅ SUCCÈS ! Le fichier test_pfe.txt a été envoyé. Code: $HTTP_CODE"
-                else
-                  echo "❌ ÉCHEC de l'envoi. Code HTTP : $HTTP_CODE"
-                  echo "Réponse complète : $RESPONSE"
-                  exit 1
-                fi
+     
 
 
 
