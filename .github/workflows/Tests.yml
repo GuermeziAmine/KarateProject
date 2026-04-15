@@ -125,14 +125,25 @@ jobs:
           path: target/surefire-reports/
       
       - name: Upload Karate Results to OneDrive
-        uses: HofmannZ/onedrive-upload@v1.0.0
         if: always()
-        with:
-          client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          client_secret: ${{ secrets.AZURE_CLIENT_SECRET }}
-          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          upload_from: "target/karate-reports/karate-summary-json.txt"
-          upload_to: "/PFE_Karate_Results/" # Attention: le paramètre s'appelle 'upload_to' ici
+        run: |
+          # Installation de l'outil pour lire la réponse Azure
+          sudo apt-get install jq -y
+
+          # 1. Récupération du jeton d'accès
+          TOKEN=$(curl -X POST https://microsoftonline.com{{ secrets.AZURE_TENANT_ID }}/oauth2/v2.0/token \
+            -d "client_id=${{ secrets.AZURE_CLIENT_ID }}" \
+            -d "scope=https://microsoft.com" \
+            -d "client_secret=${{ secrets.AZURE_CLIENT_SECRET }}" \
+            -d "grant_type=client_credentials" | jq -r .access_token)
+
+          # 2. Envoi du fichier dans le dossier que vous venez de créer
+          curl -X PUT "https://microsoft.com" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @"target/karate-reports/karate-summary-json.txt"
+
+
 
 
 
