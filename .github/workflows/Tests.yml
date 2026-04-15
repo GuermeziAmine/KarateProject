@@ -69,7 +69,7 @@ jobs:
                 TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
                 CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
                 CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-                USER_EMAIL: "minouguermezi170@gmail.com"
+                USER_EMAIL: 657d90b1-1547-498c-8370-f3280c5815a6
         run: |
                 # 1. Création d'un fichier de test bidon
                 echo "Test d'upload automatique depuis GitHub Actions le $(date)" > test_pfe.txt
