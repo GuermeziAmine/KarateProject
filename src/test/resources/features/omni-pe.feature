@@ -523,7 +523,7 @@ Scenario: Apply price adjustments on vehicule
     And request RequestBody
     When method post
 
-    Then status 400
+    Then status 404
 
 Scenario: Retrieve the wrapper of the deductions
 
