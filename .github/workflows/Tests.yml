@@ -124,5 +124,13 @@ jobs:
           name: surefire-reports
           path: target/surefire-reports/
       
- 
+      - name: Upload Karate Results to OneDrive
+        uses: svenstaro/upload-to-onedrive@v2
+        if: always() # Pour envoyer le rapport même si un test échoue
+        with:
+          client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          client_secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          drive_target_folder: "/PFE_Karate_Results/"
+          upload_from: "target/karate-reports/karate-summary-json.txt"
 
