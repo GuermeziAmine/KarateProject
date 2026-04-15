@@ -127,26 +127,22 @@ jobs:
       - name: Upload Karate Results to OneDrive
         if: always()
         run: |
-          # 1. Vérifier si le fichier existe avant d'essayer de l'envoyer
-          if [ ! -f "target/karate-reports/karate-summary-json.txt" ]; then
-            echo "ERREUR : Le fichier de rapport n'a pas été trouvé !"
-            echo "Voici les fichiers présents dans target/ :"
-            ls -R target/ || echo "Le dossier target n'existe même pas."
-            exit 1
-          fi
+          # 1. Créer un fichier ZIP avec tous les rapports JSON trouvés
+          zip -r karate-results.zip target/karate-reports/*.karate-json.txt
 
-          # 2. Récupération du jeton (Vérifiez bien cette ligne)
+          # 2. Récupération du jeton
           TOKEN=$(curl -X POST "https://microsoftonline.com{{ secrets.AZURE_TENANT_ID }}/oauth2/v2.0/token" \
             -d "client_id=${{ secrets.AZURE_CLIENT_ID }}" \
             -d "scope=https://microsoft.com" \
             -d "client_secret=${{ secrets.AZURE_CLIENT_SECRET }}" \
             -d "grant_type=client_credentials" | jq -r .access_token)
 
-          # 3. Envoi du fichier
+          # 3. Envoi du fichier ZIP
           curl -X PUT "https://microsoft.com" \
             -H "Authorization: Bearer $TOKEN" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary @"target/karate-reports/karate-summary-json.txt"
+            -H "Content-Type: application/zip" \
+            --data-binary @"karate-results.zip"
+
 
 
 
