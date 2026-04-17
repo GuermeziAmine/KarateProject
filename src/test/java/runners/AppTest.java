@@ -10,11 +10,10 @@ class AppTest {
     @Test
     void testParallel() {
         Results results = Runner.path("classpath:features")
-                .tags("~@ignore")
+                .tags("~@ignore") 
                 .parallel(5); 
 
-
-
+        assertEquals(0, results.getFailCount(), results.getErrorMessages());
     }
 
 }
