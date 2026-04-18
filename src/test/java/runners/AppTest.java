@@ -12,7 +12,7 @@ class AppTest {
     @Karate.Test
     Karate testTradeIn() {
         
-        return Karate.run("classpath:features/omni-TradeIn.feature");
+        return Karate.run("classpath:features/omni-DealerLocator.feature");
     }
     */
 
