@@ -88,7 +88,7 @@ Scenario: Retrieve  accessibles sales protocols for a customer
       And request RequestBody
       When method post
 
-      Then status 502
+      Then status 200
 
 Scenario: Retrieve offer voucher
 
