@@ -19,7 +19,7 @@ jobs:
   build:
     # --- MODIFICATION ICI ---
     # On passe sur un serveur Mac pour obtenir une adresse IP différente de celles d'Azure/Linux
-    runs-on: macos-latest
+    runs-on: ubuntu-20.04
     
     steps:
       - name: Checkout du code
