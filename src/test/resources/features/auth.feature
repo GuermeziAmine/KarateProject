@@ -6,8 +6,8 @@ Feature: OMNI Authentication
 
   Scenario: Retrieve OAuth2 Token
 
-    Given url omniUrl
-    And path '/oauth2/v1/token'
+    Given url baseUrl
+    And path 'preprod/oauth2/v1/token'
     And header Accept = '*/*'
     And header Content-Type = 'application/json'
     And header Authorization = 'Basic MmM1NDA5YmEtN2Q3Yi00YzIzLWE4MTMtMzIwYWJlZDVmOGQxOlNhMzdGczRMbkRkR3Rqb0NPVUlJM204WEgzcEFuczVFN29QbmdiYzNWcmpFQVg1ZEd3'
