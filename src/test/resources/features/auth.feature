@@ -15,6 +15,7 @@ Feature: OMNI Authentication
     When method post
     Then status 200
 
+    
     # FIX: Use 'accessToken' (camelCase) to match the OMNI server response
     * def authToken = response.accessToken
     * print 'Generated Token Check:', authToken
