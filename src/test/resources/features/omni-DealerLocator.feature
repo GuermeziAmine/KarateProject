@@ -1,5 +1,9 @@
 Feature: OMNI DealerLocator Service Logic
 
+  Background:
+    
+    * def authResult = call read('auth.feature')
+    * def token = authResult.authToken
 Scenario: Retrieve all dealer details for a specific geolocal info
 
       * def RequestBody =

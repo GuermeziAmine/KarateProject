@@ -8,12 +8,11 @@ class AppTest {
     Karate runTests() {
         return Karate.run("classpath:features").tags("~@ignore"); 
     }
-    /*
+  
     @Karate.Test
     Karate testTradeIn() {
         
         return Karate.run("classpath:features/omni-DealerLocator.feature");
     }
-    */
-
+ 
 }

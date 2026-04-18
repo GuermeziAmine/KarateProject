@@ -19,8 +19,7 @@ function fn() {
     config.omniUrl = config.baseUrl + '/preprod';
   }
 
-  var authResult = karate.callSingle('classpath:features/auth.feature', config);
-  config.token = authResult.authToken;
+
   
   return config;
 }
