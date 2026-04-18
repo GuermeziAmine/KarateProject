@@ -17,10 +17,16 @@ on:
 
 jobs:
   build:
-    # --- MODIFICATION ICI ---
-    # On passe sur un serveur Mac pour obtenir une adresse IP différente de celles d'Azure/Linux
+    # On passe sur un serveur Windows pour tester une autre IP
     runs-on: windows-latest
     
+    # --- AJOUT CRUCIAL ICI ---
+    # On force Windows à utiliser un terminal "Bash" (façon Linux)
+    # Sinon tes commandes (sleep, &, déclaration de variables) vont planter en PowerShell
+    defaults:
+      run:
+        shell: bash
+        
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
@@ -47,7 +53,10 @@ jobs:
       - name: Run ONLY Dealer Locator Test
         if: always()
         run: |
-   
+          # --- CORRECTION ICI ---
+          # Remise en place de la définition de la variable avant de l'utiliser
+          TARGET_ENV="${{ github.event.inputs.environment || 'preprod' }}"
+          echo "Running Dealer Locator Test on environment: $TARGET_ENV"
           
           # On utilise -Dkarate.options pour forcer l'exécution de ce seul fichier
           mvn clean test -Dkarate.env=$TARGET_ENV "-Dkarate.options=classpath:features/omni-DealerLocator.feature"
