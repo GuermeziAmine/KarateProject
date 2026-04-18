@@ -1,6 +1,8 @@
 Feature: OMNI Basket Service Logic
 
-
+Background:
+  * def authResult = callonce read('classpath:features/auth.feature')
+  * def token = authResult.authToken
 
   Scenario: Retrieve accessories for a vehicle with Checksum
 

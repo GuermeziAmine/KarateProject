@@ -1,6 +1,8 @@
 Feature: OMNI PE  Service Logic
 
-
+Background:
+  * def authResult = callonce read('classpath:features/auth.feature')
+  * def token = authResult.authToken
 
 Scenario: Retrieve Prices of Vehicule 
   

@@ -1,5 +1,8 @@
 Feature: OMNI Finco Service Logic
 
+Background:
+  * def authResult = callonce read('classpath:features/auth.feature')
+  * def token = authResult.authToken
 Scenario: Retrieve the increase price for each components of a configuration
 
     * def RequestBody = 

@@ -46,14 +46,10 @@ jobs:
           sleep 5 
 
         
-      - name: Run ONLY Dealer Locator Test
-        if: always()
+      - name: Run Karate API Tests
         run: |
-          TARGET_ENV="${{ github.event.inputs.environment || 'preprod' }}"
-          echo "Running Dealer Locator Test on environment: $TARGET_ENV"
-          
-          # On utilise -Dkarate.options pour forcer l'exécution de ce seul fichier
-          mvn clean test -Dkarate.env=$TARGET_ENV "-Dkarate.options=classpath:features/omni-DealerLocator.feature"
+          echo "Running Karate Tests on environment: ${{ github.event.inputs.environment || 'preprod' }}"
+          mvn clean test -Dkarate.env=${{ github.event.inputs.environment || 'preprod' }}
 
 
     

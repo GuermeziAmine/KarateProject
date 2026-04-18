@@ -1,5 +1,10 @@
 Feature: OMNI Bank Service Logic
 
+Background:
+  * def authResult = callonce read('classpath:features/auth.feature')
+  * def token = authResult.authToken
+
+
 
 Scenario: Create a new payment V1
 

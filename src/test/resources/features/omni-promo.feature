@@ -1,5 +1,8 @@
 Feature: OMNI Promo  Service Logic
 
+Background:
+  * def authResult = callonce read('classpath:features/auth.feature')
+  * def token = authResult.authToken
 
 Scenario: Retrieve the list of Level 2 Delegation grid discounts for B2B accounts  
 

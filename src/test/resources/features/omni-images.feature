@@ -1,6 +1,8 @@
 Feature: OMNI Images Service Logic
 
-
+Background:
+  * def authResult = callonce read('classpath:features/auth.feature')
+  * def token = authResult.authToken
 
 Scenario: Retrieve url images from Asset Picker or V3D  
 

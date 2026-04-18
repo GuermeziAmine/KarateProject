@@ -1,8 +1,8 @@
 Feature: OMNI Stock Logic 
 
-
-
-
+Background:
+  * def authResult = callonce read('classpath:features/auth.feature')
+  * def token = authResult.authToken
 
 Scenario: Retrieve a list of available dealers 
 

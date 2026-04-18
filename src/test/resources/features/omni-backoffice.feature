@@ -1,5 +1,10 @@
 Feature: OMNI BO Service Logic
 
+Background:
+  * def authResult = callonce read('classpath:features/auth.feature')
+  * def token = authResult.authToken
+
+
 
 Scenario: retrieve  the configurations from the BO
 

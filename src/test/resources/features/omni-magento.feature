@@ -1,5 +1,8 @@
 Feature: OMNI Magento Service Logic
 
+Background:
+  * def authResult = callonce read('classpath:features/auth.feature')
+  * def token = authResult.authToken
 
 Scenario: Save quotation of an user
 
