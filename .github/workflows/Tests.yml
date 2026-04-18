@@ -17,16 +17,9 @@ on:
 
 jobs:
   build:
-    # On passe sur un serveur Windows pour tester une autre IP
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     
-    # --- AJOUT CRUCIAL ICI ---
-    # On force Windows à utiliser un terminal "Bash" (façon Linux)
-    # Sinon tes commandes (sleep, &, déclaration de variables) vont planter en PowerShell
-    defaults:
-      run:
-        shell: bash
-        
+
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
@@ -38,9 +31,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+
       - name: Log workflow inputs for Octane
         run: |
           echo "execution_parameter:: {\"environment\":\"${{ github.event.inputs.environment || 'preprod' }}\"}"
+
           
       - name: Start Checksum Node Server
         run: |
@@ -49,17 +44,20 @@ jobs:
           npm install
           node index.js &
           sleep 5 
+
         
       - name: Run ONLY Dealer Locator Test
         if: always()
         run: |
-          # --- CORRECTION ICI ---
-          # Remise en place de la définition de la variable avant de l'utiliser
           TARGET_ENV="${{ github.event.inputs.environment || 'preprod' }}"
           echo "Running Dealer Locator Test on environment: $TARGET_ENV"
           
           # On utilise -Dkarate.options pour forcer l'exécution de ce seul fichier
           mvn clean test -Dkarate.env=$TARGET_ENV "-Dkarate.options=classpath:features/omni-DealerLocator.feature"
+
+
+    
+      
 
       - name: Sauvegarde des rapports
         if: always()
@@ -69,3 +67,14 @@ jobs:
           path: |
             target/karate-reports/
             target/surefire-reports/
+      
+     
+
+
+
+
+
+
+
+
+
