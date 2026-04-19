@@ -53,7 +53,7 @@ jobs:
           echo "Running Dealer Locator Test on environment: $TARGET_ENV"
           
           # On utilise -Dkarate.options pour forcer l'exécution de ce seul fichier
-          mvn clean test -Dkarate.env=$TARGET_ENV "-Dkarate.options=classpath:features/omni-DealerLocator.feature"
+          mvn clean test -Dkarate.env=$TARGET_ENV "-Dkarate.options=classpath:features/omni-crm.feature"
 
 
     
