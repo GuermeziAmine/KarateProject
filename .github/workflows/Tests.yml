@@ -48,36 +48,9 @@ jobs:
           mvn clean test -Dkarate.env=$TARGET_ENV "-Dkarate.options=classpath:features/omni-DealerLocator.feature"
 
       # 🔥 ÉTAPE CRITIQUE (AJOUTÉE)
-      - name: Convert Karate time (sec → ms)
-        if: always()
+      - name: Convert time sec → ms (simple)
         run: |
-          echo "Fixing JUnit time values..."
-          python3 <<EOF
-          import xml.etree.ElementTree as ET
-          import glob
-
-          files = glob.glob("target/surefire-reports/*.xml")
-
-          for file in files:
-              try:
-                  tree = ET.parse(file)
-                  root = tree.getroot()
-                  modified = False
-
-                  for tc in root.iter('testcase'):
-                      if 'time' in tc.attrib:
-                          t = float(tc.attrib['time'])
-                          new_val = str(int(t * 1000))
-                          tc.attrib['time'] = new_val
-                          modified = True
-
-                  if modified:
-                      tree.write(file)
-                      print(f"Updated: {file}")
-
-              except Exception as e:
-                  print(f"Skipped {file}: {e}")
-          EOF
+          sed -i -E 's/time="([0-9]+)\.([0-9]+)"/time="\1\2"/g' target/surefire-reports/*.xml
 
       - name: Sauvegarde des rapports
         if: always()
