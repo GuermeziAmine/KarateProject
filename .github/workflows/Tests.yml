@@ -18,7 +18,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
 
     steps:
       - name: Checkout du code
@@ -31,50 +30,58 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-
       - name: Log workflow inputs for Octane
         run: |
           echo "execution_parameter:: {\"environment\":\"${{ github.event.inputs.environment || 'preprod' }}\"}"
 
-          
       - name: Start Checksum Node Server
         run: |
-          echo "Starting Node.js Checksum Server..."
           cd checksum
           npm install
           node index.js &
-          sleep 5 
+          sleep 5
 
-        
       - name: Run ONLY Dealer Locator Test
         if: always()
         run: |
           TARGET_ENV="${{ github.event.inputs.environment || 'preprod' }}"
-          echo "Running Dealer Locator Test on environment: $TARGET_ENV"
-          
-          # On utilise -Dkarate.options pour forcer l'exécution de ce seul fichier
-          mvn clean test -Dkarate.env=$TARGET_ENV "-Dkarate.options=classpath:features/omni-crm.feature"
+          mvn clean test -Dkarate.env=$TARGET_ENV "-Dkarate.options=classpath:features/omni-DealerLocator.feature"
 
+      # 🔥 ÉTAPE CRITIQUE (AJOUTÉE)
+      - name: Convert Karate time (sec → ms)
+        if: always()
+        run: |
+          echo "Fixing JUnit time values..."
+          python3 <<EOF
+          import xml.etree.ElementTree as ET
+          import glob
 
-    
-      
+          files = glob.glob("target/surefire-reports/*.xml")
+
+          for file in files:
+              try:
+                  tree = ET.parse(file)
+                  root = tree.getroot()
+                  modified = False
+
+                  for tc in root.iter('testcase'):
+                      if 'time' in tc.attrib:
+                          t = float(tc.attrib['time'])
+                          new_val = str(int(t * 1000))
+                          tc.attrib['time'] = new_val
+                          modified = True
+
+                  if modified:
+                      tree.write(file)
+                      print(f"Updated: {file}")
+
+              except Exception as e:
+                  print(f"Skipped {file}: {e}")
+          EOF
 
       - name: Sauvegarde des rapports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: surefire-reports
-          path: |
-            target/karate-reports/
-            target/surefire-reports/
-      
-     
-
-
-
-
-
-
-
-
-
+          path: target/surefire-reports/
