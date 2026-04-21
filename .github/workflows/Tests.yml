@@ -32,7 +32,7 @@ jobs:
 
       - name: Log workflow inputs for Octane
         run: |
-          echo "execution_parameter:: {\"PATATA\":\"${{ github.event.inputs.environment || 'preprod' }}\"}"
+          echo "execution_parameter:: {\"udf_env_type_udf\":\"${{ github.event.inputs.environment || 'preprod' }}\"}"
 
       - name: Start Checksum Node Server
         run: |
