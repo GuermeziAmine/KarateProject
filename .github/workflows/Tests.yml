@@ -47,8 +47,8 @@ jobs:
           TARGET_ENV="${{ github.event.inputs.environment || 'preprod' }}"
           mvn clean test -Dkarate.env=$TARGET_ENV "-Dkarate.options=classpath:features/omni-crm.feature"
 
-      # 🔥 ÉTAPE CRITIQUE (AJOUTÉE)
-      - name: Convert time sec → ms (simple)
+      
+      - name: Convert durations
         if: always()
         run: |
           sed -i -E 's/time="([0-9]+)\.([0-9]+)"/time="\1\2"/g' target/surefire-reports/*.xml
