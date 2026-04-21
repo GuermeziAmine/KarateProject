@@ -52,6 +52,21 @@ jobs:
         if: always()
         run: |
           sed -i -E 's/time="([0-9]+)\.([0-9]+)"/time="\1\2"/g' target/surefire-reports/*.xml
+      
+      - name: Debug - list all XML reports
+        run: |
+          echo "=== ALL XML FILES ==="
+          find . -type f -name "*.xml" | sort
+
+          echo ""
+          echo "=== SUREFIRE REPORTS ==="
+          find target/surefire-reports -type f -name "*.xml" 2>/dev/null | sort || true
+
+          echo ""
+          echo "=== KARATE REPORTS ==="
+          find target/karate-reports -type f -name "*.xml" 2>/dev/null | sort || true
+
+     
 
       - name: Sauvegarde des rapports
         if: always()
