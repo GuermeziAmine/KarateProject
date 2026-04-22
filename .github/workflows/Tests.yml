@@ -23,7 +23,7 @@ jobs:
       - name: Checkout du code
         uses: actions/checkout@v4
 
-        
+
       - name: Configuration du JDK 17
         uses: actions/setup-java@v4
         with:
@@ -33,7 +33,7 @@ jobs:
 
       - name: Log workflow inputs for Octane
         run: |
-          echo "execution_parameter:: {\"env_type_udf\":\"${{ github.event.inputs.environment || 'preprod' }}\"}"
+          echo "execution_parameter:: {\"env_udf\":\"${{ github.event.inputs.environment || 'preprod' }}\"}"
 
       - name: Start Checksum Node Server
         run: |
