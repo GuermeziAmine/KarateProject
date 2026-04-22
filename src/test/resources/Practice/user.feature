@@ -7,7 +7,7 @@ Background:
 Scenario: Get post
     Given path 'posts', 1
     When method GET
-    Then status 404
+    Then status 200
     And match response.id == 1
 
 
