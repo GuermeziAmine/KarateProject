@@ -86,12 +86,12 @@ jobs:
           pip install urwid==2.1.2
 
       - name: Créer la configuration Taurus
-        if: always()
         run: |
           cat <<EOF > octane_config.yml
           modules:
             jmeter:
               path: $PWD/jmeter/bin/jmeter
+              save-xml-jtl: true   
           reporting:
           - module: junit-xml
             filename: report_octane.xml
@@ -102,14 +102,40 @@ jobs:
           EOF
 
       - name: Exécuter tous les tests du dossier
-        if: always()
         run: |
           for file in src/test/jmeter/*.jmx; do
             echo "Exécution de $file..."
             FILENAME=$(basename "$file" .jmx)
+
             bzt "$file" octane_config.yml -q
-            sed -i -E "s/classname=\"bzt-[0-9]+\"/classname=\"$FILENAME\"/g" report_octane.xml
-            mv report_octane.xml "report_${FILENAME}.xml"
+
+            # 🔍 Trouver le fichier JTL généré
+            JTL_FILE=$(find artifacts -name "*.jtl" | head -1)
+
+            echo "Using JTL: $JTL_FILE"
+
+            # 🧠 Extraire les temps (ms) depuis JTL
+            TIMES=($(grep -o 't="[0-9]*"' "$JTL_FILE" | grep -o '[0-9]*'))
+
+            INDEX=0
+
+            # 🔧 Injecter dans le JUnit
+            awk -v times="${TIMES[*]}" '
+            BEGIN {
+              split(times, arr, " ");
+              i=1;
+            }
+            {
+              if ($0 ~ /<testcase/ && $0 !~ /time=/) {
+                sub(/<testcase/, "<testcase time=\"" arr[i++] "\"");
+              }
+              print;
+            }' report_octane.xml > fixed.xml
+
+            mv fixed.xml "report_${FILENAME}.xml"
+
+            # nettoyer artifacts pour éviter mélange
+            rm -rf artifacts/*
           done
 
       - name: Sauvegarde du rapport JUnit 
