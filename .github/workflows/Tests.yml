@@ -178,23 +178,24 @@ jobs:
         if: always()
         run: |
           for file in src/test/jmeter/*.jmx; do
-            echo "Exécution de $file..."
             FILENAME=$(basename "$file" .jmx)
-
-            # Run Taurus — artifacts (including results.xml JTL) land in /tmp/artifacts by default
             bzt "$file" octane_config.yml -q -o settings.artifacts-dir="artifacts_${FILENAME}"
-
-            # Fix classname in JUnit XML
             sed -i -E "s/classname=\"bzt-[0-9]+\"/classname=\"$FILENAME\"/g" report_octane.xml
 
-            # Find the JTL produced by this run (Taurus names it results.xml or kpi.jtl)
+            echo "=== Contenu de artifacts_${FILENAME} ==="
+            find "artifacts_${FILENAME}" -type f
+
             JTL_FILE=$(find "artifacts_${FILENAME}" -name "*.jtl" -o -name "kpi.jtl" 2>/dev/null | head -1)
+            echo "=== JTL trouvé : $JTL_FILE ==="
 
             if [ -n "$JTL_FILE" ]; then
-              echo "Injection des durées depuis $JTL_FILE..."
+              echo "=== 3 premières lignes du JTL ==="
+              head -3 "$JTL_FILE"
+              echo "=== Noms de testcase dans le XML ==="
+              grep 'testcase' report_octane.xml
               python inject_time.py "$JTL_FILE" report_octane.xml
             else
-              echo "Avertissement: Pas de fichier JTL trouvé pour $FILENAME, durées = 0"
+              echo "ERREUR: Aucun JTL trouvé !"
             fi
 
             mv report_octane.xml "report_${FILENAME}.xml"
