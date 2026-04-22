@@ -178,24 +178,21 @@ jobs:
         if: always()
         run: |
           for file in src/test/jmeter/*.jmx; do
+            echo "Exécution de $file..."
             FILENAME=$(basename "$file" .jmx)
+
             bzt "$file" octane_config.yml -q -o settings.artifacts-dir="artifacts_${FILENAME}"
+
             sed -i -E "s/classname=\"bzt-[0-9]+\"/classname=\"$FILENAME\"/g" report_octane.xml
 
-            echo "=== Contenu de artifacts_${FILENAME} ==="
-            find "artifacts_${FILENAME}" -type f
+            # Cibler kpi.jtl directement — c'est toujours lui qui contient tous les résultats
+            JTL_FILE="artifacts_${FILENAME}/kpi.jtl"
 
-            JTL_FILE=$(find "artifacts_${FILENAME}" -name "*.jtl" -o -name "kpi.jtl" 2>/dev/null | head -1)
-            echo "=== JTL trouvé : $JTL_FILE ==="
-
-            if [ -n "$JTL_FILE" ]; then
-              echo "=== 3 premières lignes du JTL ==="
-              head -3 "$JTL_FILE"
-              echo "=== Noms de testcase dans le XML ==="
-              grep 'testcase' report_octane.xml
+            if [ -f "$JTL_FILE" ]; then
+              echo "Injection des durées depuis $JTL_FILE..."
               python inject_time.py "$JTL_FILE" report_octane.xml
             else
-              echo "ERREUR: Aucun JTL trouvé !"
+              echo "ERREUR: kpi.jtl introuvable pour $FILENAME"
             fi
 
             mv report_octane.xml "report_${FILENAME}.xml"
