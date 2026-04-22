@@ -92,13 +92,23 @@ jobs:
           modules:
             jmeter:
               path: $PWD/jmeter/bin/jmeter
-              save-xml-jtl: true   
+          execution:
+          - scenario: default
+            executor: jmeter
+            iterations: 1
+
+          scenarios:
+            default:
+              script: dummy.jmx
+
           reporting:
           - module: junit-xml
             filename: report_octane.xml
             data-source: sample-labels
             sample-labels: true
+
           settings:
+            artifacts-dir: artifacts   # 🔥 FORCER LE DOSSIER
             check-updates: false
           EOF
 
