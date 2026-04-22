@@ -86,6 +86,7 @@ jobs:
           pip install urwid==2.1.2
 
       - name: Créer la configuration Taurus
+        if: always()
         run: |
           cat <<EOF > octane_config.yml
           modules:
@@ -102,6 +103,7 @@ jobs:
           EOF
 
       - name: Exécuter tous les tests du dossier
+        if: always()
         run: |
           for file in src/test/jmeter/*.jmx; do
             echo "Exécution de $file..."
