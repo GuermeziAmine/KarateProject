@@ -92,25 +92,87 @@ jobs:
           modules:
             jmeter:
               path: $PWD/jmeter/bin/jmeter
-          execution:
-          - scenario: default
-            executor: jmeter
-            iterations: 1
-
-          scenarios:
-            default:
-              script: dummy.jmx
-
           reporting:
           - module: junit-xml
             filename: report_octane.xml
             data-source: sample-labels
             sample-labels: true
-
           settings:
-            artifacts-dir: artifacts   # 🔥 FORCER LE DOSSIER
             check-updates: false
           EOF
+
+      - name: Créer le script d'injection de durée
+        if: always()
+        run: |
+          cat <<'PYEOF' > inject_time.py
+          import sys
+          import csv
+          import xml.etree.ElementTree as ET
+          from collections import defaultdict
+
+          jtl_path = sys.argv[1]
+          xml_path = sys.argv[2]
+
+          # Parse JTL: columns = timeStamp,elapsed,label,responseCode,...,success,...
+          label_times = defaultdict(list)
+          label_errors = defaultdict(int)
+
+          with open(jtl_path, newline='', encoding='utf-8') as f:
+              reader = csv.DictReader(f)
+              for row in reader:
+                  label = row.get('label', '').strip()
+                  elapsed = row.get('elapsed', '0').strip()
+                  success = row.get('success', 'true').strip().lower()
+                  if label:
+                      try:
+                          label_times[label].append(int(elapsed))
+                      except ValueError:
+                          pass
+                      if success == 'false':
+                          label_errors[label] += 1
+
+          # Compute avg time in seconds per label
+          label_avg = {
+              label: round(sum(times) / len(times) / 1000, 6)
+              for label, times in label_times.items()
+              if times
+          }
+
+          # Update XML
+          ET.register_namespace('', '')
+          tree = ET.parse(xml_path)
+          root = tree.getroot()
+
+          total_time = 0.0
+          total_tests = 0
+          total_failures = 0
+
+          for testsuite in root.iter('testsuite'):
+              suite_time = 0.0
+              suite_tests = 0
+              suite_failures = 0
+              for testcase in testsuite.iter('testcase'):
+                  name = testcase.get('name', '')
+                  avg = label_avg.get(name, 0.0)
+                  testcase.set('time', str(avg))
+                  suite_time += avg
+                  suite_tests += 1
+                  if testcase.find('failure') is not None or testcase.find('error') is not None:
+                      suite_failures += 1
+              testsuite.set('time', str(round(suite_time, 6)))
+              testsuite.set('tests', str(suite_tests))
+              testsuite.set('failures', str(suite_failures))
+              total_time += suite_time
+              total_tests += suite_tests
+              total_failures += suite_failures
+
+          root.set('time', str(round(total_time, 6)))
+          root.set('tests', str(total_tests))
+          root.set('failures', str(total_failures))
+
+          tree.write(xml_path, encoding='unicode', xml_declaration=True)
+          print(f"[inject_time] Done — {total_tests} tests, avg times injected from {jtl_path}")
+          PYEOF
 
       - name: Exécuter tous les tests du dossier
         if: always()
@@ -119,35 +181,23 @@ jobs:
             echo "Exécution de $file..."
             FILENAME=$(basename "$file" .jmx)
 
-            bzt "$file" octane_config.yml -q
+            # Run Taurus — artifacts (including results.xml JTL) land in /tmp/artifacts by default
+            bzt "$file" octane_config.yml -q -o settings.artifacts-dir="artifacts_${FILENAME}"
 
-            # 🔍 Trouver le fichier JTL généré
-            JTL_FILE=$(find artifacts -name "*.jtl" | head -1)
+            # Fix classname in JUnit XML
+            sed -i -E "s/classname=\"bzt-[0-9]+\"/classname=\"$FILENAME\"/g" report_octane.xml
 
-            echo "Using JTL: $JTL_FILE"
+            # Find the JTL produced by this run (Taurus names it results.xml or kpi.jtl)
+            JTL_FILE=$(find "artifacts_${FILENAME}" -name "*.jtl" -o -name "kpi.jtl" 2>/dev/null | head -1)
 
-            # 🧠 Extraire les temps (ms) depuis JTL
-            TIMES=($(grep -o 't="[0-9]*"' "$JTL_FILE" | grep -o '[0-9]*'))
+            if [ -n "$JTL_FILE" ]; then
+              echo "Injection des durées depuis $JTL_FILE..."
+              python inject_time.py "$JTL_FILE" report_octane.xml
+            else
+              echo "Avertissement: Pas de fichier JTL trouvé pour $FILENAME, durées = 0"
+            fi
 
-            INDEX=0
-
-            # 🔧 Injecter dans le JUnit
-            awk -v times="${TIMES[*]}" '
-            BEGIN {
-              split(times, arr, " ");
-              i=1;
-            }
-            {
-              if ($0 ~ /<testcase/ && $0 !~ /time=/) {
-                sub(/<testcase/, "<testcase time=\"" arr[i++] "\"");
-              }
-              print;
-            }' report_octane.xml > fixed.xml
-
-            mv fixed.xml "report_${FILENAME}.xml"
-
-            # nettoyer artifacts pour éviter mélange
-            rm -rf artifacts/*
+            mv report_octane.xml "report_${FILENAME}.xml"
           done
 
       - name: Sauvegarde du rapport JUnit 
