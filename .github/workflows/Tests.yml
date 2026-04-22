@@ -16,7 +16,9 @@ on:
         default: 'preprod'
 
 jobs:
+  
   build:
+    name: "Test - ${{ github.event.inputs.environment || 'preprod' }}"
     runs-on: ubuntu-latest
 
     steps:
