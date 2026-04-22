@@ -44,17 +44,81 @@ jobs:
           node index.js &
           sleep 5
 
-      - name: Run ONLY Dealer Locator Test
+      - name: Run Karate Tests
         if: always()
         run: |
           TARGET_ENV="${{ github.event.inputs.environment || 'preprod' }}"
-          mvn test -Dkarate.env=$TARGET_ENV "-Dkarate.options=classpath:features/omni-DealerLocator.feature"
+          mvn test -Dkarate.env=$TARGET_ENV "-Dkarate.options=classpath:Practice"
 
       
       - name: Convert durations
         if: always()
         run: |
           sed -i -E 's/time="([0-9]+)\.([0-9]+)"/time="\1\2"/g' target/surefire-reports/*.xml
+
+
+      - name: Cache JMeter
+        if: always()      
+        id: cache-jmeter
+        uses: actions/cache@v3
+        with:
+          path: jmeter
+          key: jmeter-5.6.3
+
+      - name: Install JMeter 5.6.3
+        if: steps.cache-jmeter.outputs.cache-hit != 'true'
+        run: |
+          wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
+          tar -xzf apache-jmeter-5.6.3.tgz
+          mv apache-jmeter-5.6.3 jmeter
+          rm apache-jmeter-5.6.3.tgz
+
+      - name: Configuration de Python
+        if: always()      
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Installation de Taurus (bzt)
+        if: always()
+        run: |
+          pip install bzt
+          pip install urwid==2.1.2
+
+      - name: Créer la configuration Taurus
+        if: always()
+        run: |
+          cat <<EOF > octane_config.yml
+          modules:
+            jmeter:
+              path: $PWD/jmeter/bin/jmeter
+          reporting:
+          - module: junit-xml
+            filename: report_octane.xml
+            data-source: sample-labels
+            sample-labels: true
+          settings:
+            check-updates: false
+          EOF
+
+      - name: Exécuter tous les tests du dossier
+        if: always()
+        run: |
+          for file in src/test/jmeter/*.jmx; do
+            echo "Exécution de $file..."
+            FILENAME=$(basename "$file" .jmx)
+            bzt "$file" octane_config.yml -q
+            sed -i -E "s/classname=\"bzt-[0-9]+\"/classname=\"$FILENAME\"/g" report_octane.xml
+            mv report_octane.xml "report_${FILENAME}.xml"
+          done
+
+      - name: Sauvegarde du rapport JUnit 
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jmeter-test-results
+          path: report_*.xml
+          retention-days: 5
       
      
       - name: Sauvegarde des rapports
