@@ -33,7 +33,7 @@ jobs:
 
       - name: Log workflow inputs for Octane
         run: |
-          echo "execution_parameter:: {\"env_udf\":\"${{ github.event.inputs.environment || 'preprod' }}\"}"
+          echo "description::Environnement: ${{ github.event.inputs.environment || 'preprod' }}"
 
       - name: Start Checksum Node Server
         run: |
