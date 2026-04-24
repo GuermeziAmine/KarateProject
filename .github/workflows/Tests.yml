@@ -51,7 +51,7 @@ jobs:
         if: always()
         run: |
           TARGET_ENV="${{ github.event.inputs.environment || 'preprod' }}"
-          mvn test -Dkarate.env=$TARGET_ENV "-Dkarate.options=classpath:Practice"
+          mvn test -Dkarate.env=$TARGET_ENV "-Dkarate.options=classpath:features"
 
       
       - name: Convert durations
