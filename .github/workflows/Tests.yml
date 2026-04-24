@@ -20,6 +20,9 @@ jobs:
   build:
     name: "Test - ${{ github.event.inputs.environment || 'preprod' }}"
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout du coder
