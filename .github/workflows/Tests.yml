@@ -95,7 +95,7 @@ jobs:
           
           echo "📂 Dossier cible final : $OUTPUT_DIR"
 
-          # Configuration Taurus de base
+          # Configuration Taurus (Standard)
           cat <<EOF > octane_config.yml
           modules:
             jmeter:
@@ -105,7 +105,7 @@ jobs:
             filename: report_octane.xml
             data-source: sample-labels
             sample-labels: true
-          # On demande explicitement le CSV
+          # On force la génération du CSV brut
           - module: final-stats
             dump-csv: kpi.jtl
           settings:
@@ -119,50 +119,97 @@ jobs:
             echo "🚀 Lancement de $file..."
             FILENAME=$(basename "$file" .jmx)
             
-            # Dossier temporaire unique
-            TEMP_DIR="temp_artifacts_$FILENAME"
+            # Dossier temporaire unique pour ce test
+            TEMP_DIR="artifacts_$FILENAME"
             
-            # CORRECTION : On utilise '-o settings.artifacts-dir=...' au lieu de '-d'
+            # --- CORRECTION MAJEURE ICI ---
+            # On utilise la syntaxe officielle pour définir le dossier de sortie
             bzt "$file" octane_config.yml -q \
               -o settings.artifacts-dir="$TEMP_DIR"
 
-            # --- DIAGNOSTIC RAPIDE ---
-            # Si ça échoue, on veut voir si le dossier a été créé
-            if [ -d "$TEMP_DIR" ]; then
-                echo "📂 Dossier temporaire créé : $TEMP_DIR"
+            # --- RÉCUPÉRATION SÉCURISÉE ---
+            # On cherche le fichier kpi.jtl dans le dossier qu'on vient de définir
+            if [ -f "$TEMP_DIR/kpi.jtl" ]; then
+                echo "✅ Résultats trouvés (kpi.jtl). Copie vers le dossier final..."
+                cp "$TEMP_DIR/kpi.jtl" "$OUTPUT_DIR/${FILENAME}.csv"
             else
-                echo "⚠️ Bizarre : Le dossier temporaire n'existe pas."
+                echo "⚠️ Pas de kpi.jtl. Recherche alternative..."
+                # Plan B : On cherche n'importe quel CSV dans le dossier
+                FOUND=$(find "$TEMP_DIR" -name "*.csv" | head -n 1)
+                if [ -n "$FOUND" ]; then
+                   cp "$FOUND" "$OUTPUT_DIR/${FILENAME}.csv"
+                   echo "✅ Fichier alternatif trouvé et copié."
+                else
+                   echo "❌ ÉCHEC : Aucun fichier de résultat généré par Taurus pour $FILENAME"
+                   ls -R "$TEMP_DIR"
+                fi
             fi
 
-            # --- RECHERCHE INTELLIGENTE DU CSV ---
-            # On cherche n'importe quel fichier CSV ou JTL dans ce dossier
-            FOUND_FILE=$(find "$TEMP_DIR" -type f \( -name "*.jtl" -o -name "*.csv" \) | head -n 1)
-
-            if [ -n "$FOUND_FILE" ]; then
-                echo "✅ Bingo ! Fichier trouvé : $FOUND_FILE"
-                cp "$FOUND_FILE" "$OUTPUT_DIR/${FILENAME}.csv"
-                echo "➡️ Sauvegardé sous : $OUTPUT_DIR/${FILENAME}.csv"
-            else
-                echo "❌ ÉCHEC : Aucun fichier de résultat trouvé pour $FILENAME"
-                # On liste tout pour comprendre (Debug ultime)
-                echo "Contenu complet du répertoire courant :"
-                ls -R | grep ".jtl" || echo "Aucun .jtl nulle part"
-            fi
-
-            # --- GESTION XML OCTANE ---
-            FOUND_XML=$(find "$TEMP_DIR" -type f -name "report_octane.xml" | head -n 1)
-            if [ -n "$FOUND_XML" ]; then
-                sed -i -E "s/classname=\"bzt-[0-9]+\"/classname=\"$FILENAME\"/g" "$FOUND_XML"
-                mv "$FOUND_XML" "report_${FILENAME}.xml"
+            # Gestion Octane (XML)
+            if [ -f "$TEMP_DIR/report_octane.xml" ]; then
+                sed -i -E "s/classname=\"bzt-[0-9]+\"/classname=\"$FILENAME\"/g" "$TEMP_DIR/report_octane.xml"
+                mv "$TEMP_DIR/report_octane.xml" "report_${FILENAME}.xml"
             fi
             
             echo "---------------------------------------------------"
           done
           
-          # Bilan final
-          echo "🏁 Contenu de results_powerbi :"
+          # Vérification finale pour vous rassurer
+          echo "🏁 Contenu FINAL du dossier results_powerbi :"
           ls -lh "$OUTPUT_DIR"
 
+
+      - name: 2. Fusionner les CSV pour Power BI
+        if: always()
+        run: |
+          # Création explicite du dossier final
+          mkdir -p final_results
+          
+          # On cherche les fichiers avec le chemin absolu
+          FIRST_FILE=$(ls results_powerbi/*.csv 2>/dev/null | head -n 1)
+          
+          if [ -n "$FIRST_FILE" ]; then
+            echo "✅ Fichiers trouvés. Début de la fusion..."
+            head -n 1 "$FIRST_FILE" > final_results/resultats_global.csv
+            tail -n +2 -q results_powerbi/*.csv >> final_results/resultats_global.csv
+          else
+            echo "⚠️ Aucun fichier CSV trouvé. Vérifiez l'étape précédente."
+          fi
+
+      - name: 3. Mise à jour de l'Historique (Mode Append)
+        if: always()
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          
+          # Chemins
+          mkdir -p history
+          HISTORY_FILE="history/global_perf_history.csv"
+          NEW_DATA="final_results/resultats_global.csv"
+          
+          # --- SÉCURITÉ : On vérifie si le fichier existe avant de toucher ---
+          if [ -f "$NEW_DATA" ]; then
+            echo "✅ Nouvelles données détectées. Traitement en cours..."
+            
+            # Ajouter le Run ID
+            sed -i "s/$/,$GITHUB_RUN_NUMBER/" "$NEW_DATA"
+            
+            # Logique d'ajout
+            if [ ! -f "$HISTORY_FILE" ]; then
+                echo "Création du fichier historique..."
+                sed "1s/$GITHUB_RUN_NUMBER/RunID/" "$NEW_DATA" > "$HISTORY_FILE"
+            else
+                echo "Ajout au fichier existant..."
+                tail -n +2 "$NEW_DATA" >> "$HISTORY_FILE"
+            fi
+
+            # Commit
+            git add "$HISTORY_FILE"
+            git diff --quiet && git diff --staged --quiet || (git commit -m "Append Run $GITHUB_RUN_NUMBER to History [skip ci]" && git push)
+          
+          else
+            echo "⚠️ Pas de fichier 'resultats_global.csv'. Le pipeline s'arrête proprement."
+          fi
 
 
       - name: Sauvegarde du rapport JUnit 
