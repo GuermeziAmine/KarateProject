@@ -85,9 +85,13 @@ jobs:
           pip install bzt
           pip install urwid==2.1.2
 
-      - name: Créer la configuration Taurus
+      - name: 1. Exécution Hybride (Taurus -> Octane & Power BI)
         if: always()
         run: |
+          # --- PRÉPARATION ---
+          mkdir -p results_powerbi
+          
+          # Configuration Taurus pour OCTANE (Votre config originale)
           cat <<EOF > octane_config.yml
           modules:
             jmeter:
@@ -99,18 +103,76 @@ jobs:
             sample-labels: true
           settings:
             check-updates: false
+            default-executor: jmeter
           EOF
 
-      - name: Exécuter tous les tests du dossier
+          # --- BOUCLE D'EXÉCUTION ---
+          for file in src/test/jmeter/*.jmx; do
+            echo "🚀 Lancement de $file..."
+            FILENAME=$(basename "$file" .jmx)
+            
+            # LA LIGNE MAGIQUE :
+            # 1. On charge 'octane_config.yml' (Pour générer le XML)
+            # 2. On ajoute '-o modules.jmeter.csv-jtl=...' (Pour générer le CSV Power BI)
+            
+            bzt "$file" octane_config.yml -q \
+              -o modules.jmeter.csv-jtl="results_powerbi/${FILENAME}.csv"
+
+            # Post-Traitement pour OCTANE (Renommage pour éviter l'écrasement)
+            if [ -f report_octane.xml ]; then
+                sed -i -E "s/classname=\"bzt-[0-9]+\"/classname=\"$FILENAME\"/g" report_octane.xml
+                mv report_octane.xml "report_${FILENAME}.xml"
+            fi
+          done
+
+      - name: 2. Fusionner les CSV pour Power BI
         if: always()
         run: |
-          for file in src/test/jmeter/*.jmx; do
-            echo "Exécution de $file..."
-            FILENAME=$(basename "$file" .jmx)
-            bzt "$file" octane_config.yml -q
-            sed -i -E "s/classname=\"bzt-[0-9]+\"/classname=\"$FILENAME\"/g" report_octane.xml
-            mv report_octane.xml "report_${FILENAME}.xml"
-          done
+          mkdir -p final_results
+          # On prend l'en-tête du premier fichier trouvé
+          FIRST_FILE=$(ls results_powerbi/*.csv | head -n 1)
+          
+          if [ -n "$FIRST_FILE" ]; then
+            head -n 1 "$FIRST_FILE" > final_results/resultats_global.csv
+            # On empile tout le reste
+            tail -n +2 -q results_powerbi/*.csv >> final_results/resultats_global.csv
+            echo "✅ Fusion terminée."
+          else
+            echo "⚠️ Aucun résultat trouvé."
+          fi
+
+      - name: 3. Mise à jour de l'Historique (Mode Append)
+        if: always()
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          
+          # Création du dossier si inexistant
+          mkdir -p history
+          HISTORY_FILE="history/global_perf_history.csv"
+          NEW_DATA="final_results/resultats_global.csv"
+          
+          # --- ÉTAPE CRITIQUE : Ajouter le numéro de Build (Run ID) ---
+          # On ajoute ",Run_ID" à la fin de chaque ligne pour identifier l'exécution
+          # Le 'sed' ci-dessous ajoute le numéro du build à la fin de chaque ligne du fichier temporaire
+          sed -i "s/$/,$GITHUB_RUN_NUMBER/" "$NEW_DATA"
+          
+          # --- LOGIQUE D'AJOUT (APPEND) ---
+          if [ ! -f "$HISTORY_FILE" ]; then
+            echo "Création du fichier historique..."
+            # Si c'est la 1ère fois : On ajoute une colonne 'RunID' à l'entête et on copie tout
+            # L'astuce : on remplace le RunID de la ligne d'entête (qui est un chiffre) par le mot 'RunID'
+            sed "1s/$GITHUB_RUN_NUMBER/RunID/" "$NEW_DATA" > "$HISTORY_FILE"
+          else
+            echo "Ajout au fichier existant..."
+            # Si le fichier existe déjà : On enlève la 1ère ligne (Header) et on ajoute le reste à la fin
+            tail -n +2 "$NEW_DATA" >> "$HISTORY_FILE"
+          fi
+
+          # --- COMMIT & PUSH ---
+          git add "$HISTORY_FILE"
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Append Run $GITHUB_RUN_NUMBER to History [skip ci]" && git push)
+
 
       - name: Sauvegarde du rapport JUnit 
         uses: actions/upload-artifact@v4
