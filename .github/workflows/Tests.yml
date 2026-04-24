@@ -20,7 +20,7 @@ jobs:
   build:
     name: "Test - ${{ github.event.inputs.environment || 'preprod' }}"
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: write
 
@@ -98,7 +98,7 @@ jobs:
           
           echo "📂 Dossier cible final : $OUTPUT_DIR"
 
-          # Configuration Taurus (Standard)
+          # Configuration Taurus
           cat <<EOF > octane_config.yml
           modules:
             jmeter:
@@ -108,7 +108,6 @@ jobs:
             filename: report_octane.xml
             data-source: sample-labels
             sample-labels: true
-          # On force la génération du CSV brut
           - module: final-stats
             dump-csv: kpi.jtl
           settings:
@@ -116,50 +115,67 @@ jobs:
             default-executor: jmeter
           EOF
 
-          # --- EXÉCUTION ---
+          # --- BOUCLE DES TESTS ---
           for file in src/test/jmeter/*.jmx; do
-            echo "---------------------------------------------------"
-            echo "🚀 Lancement de $file..."
+            echo "======================================================="
+            echo "🚀 Traitement du test : $file"
             FILENAME=$(basename "$file" .jmx)
-            
-            # Dossier temporaire unique pour ce test
             TEMP_DIR="artifacts_$FILENAME"
             
-            # --- CORRECTION MAJEURE ICI ---
-            # On utilise la syntaxe officielle pour définir le dossier de sortie
+            # Lancement Taurus
             bzt "$file" octane_config.yml -q \
               -o settings.artifacts-dir="$TEMP_DIR"
 
-            # --- RÉCUPÉRATION SÉCURISÉE ---
-            # On cherche le fichier kpi.jtl dans le dossier qu'on vient de définir
+            # ---------------------------------------------------------
+            # PARTIE 1 : SAUVETAGE DU CSV (Power BI)
+            # ---------------------------------------------------------
             if [ -f "$TEMP_DIR/kpi.jtl" ]; then
-                echo "✅ Résultats trouvés (kpi.jtl). Copie vers le dossier final..."
                 cp "$TEMP_DIR/kpi.jtl" "$OUTPUT_DIR/${FILENAME}.csv"
+                echo "✅ CSV Power BI sauvegardé."
             else
-                echo "⚠️ Pas de kpi.jtl. Recherche alternative..."
-                # Plan B : On cherche n'importe quel CSV dans le dossier
-                FOUND=$(find "$TEMP_DIR" -name "*.csv" | head -n 1)
-                if [ -n "$FOUND" ]; then
-                   cp "$FOUND" "$OUTPUT_DIR/${FILENAME}.csv"
-                   echo "✅ Fichier alternatif trouvé et copié."
+                # Recherche de secours
+                FOUND_CSV=$(find "$TEMP_DIR" -name "*.csv" | head -n 1)
+                if [ -n "$FOUND_CSV" ]; then
+                   cp "$FOUND_CSV" "$OUTPUT_DIR/${FILENAME}.csv"
+                   echo "✅ CSV alternatif trouvé et copié."
                 else
-                   echo "❌ ÉCHEC : Aucun fichier de résultat généré par Taurus pour $FILENAME"
-                   ls -R "$TEMP_DIR"
+                   echo "⚠️ Aucun CSV trouvé pour ce test."
                 fi
             fi
 
-            # Gestion Octane (XML)
-            if [ -f "$TEMP_DIR/report_octane.xml" ]; then
-                sed -i -E "s/classname=\"bzt-[0-9]+\"/classname=\"$FILENAME\"/g" "$TEMP_DIR/report_octane.xml"
-                mv "$TEMP_DIR/report_octane.xml" "report_${FILENAME}.xml"
+            # ---------------------------------------------------------
+            # PARTIE 2 : RÉPARATION DU XML (Octane) - CORRIGÉ
+            # ---------------------------------------------------------
+            # On cible précisément le fichier généré dans le dossier temporaire
+            SOURCE_XML="$TEMP_DIR/report_octane.xml"
+            DEST_XML="report_${FILENAME}.xml"
+            
+            if [ -f "$SOURCE_XML" ]; then
+                echo "🔧 Traitement du XML Octane..."
+                
+                # 1. Remplacement du nom de classe (Regex Universel)
+                # On remplace 'classname="bzt-nimportequoi"' par 'classname="NomDuFichier"'
+                # Le sed utilise maintenant [^\"]* pour capturer tout ce qui est entre guillemets
+                sed -i -E "s/classname=\"bzt-[^\"]*\"/classname=\"$FILENAME\"/g" "$SOURCE_XML"
+                
+                # 2. Déplacement vers la racine (pour que le plugin Octane le trouve)
+                mv "$SOURCE_XML" "$DEST_XML"
+                
+                echo "✅ XML corrigé et déplacé vers : $DEST_XML"
+                
+                # Debug : Afficher les 3 premières lignes pour vérifier le changement
+                head -n 3 "$DEST_XML"
+            else
+                echo "❌ CRITIQUE : Pas de report_octane.xml généré dans $TEMP_DIR"
             fi
             
-            echo "---------------------------------------------------"
+            echo "======================================================="
           done
           
-          # Vérification finale pour vous rassurer
-          echo "🏁 Contenu FINAL du dossier results_powerbi :"
-          ls -lh "$OUTPUT_DIR"
+          # Vérification finale : Lister tous les rapports XML générés à la racine
+          echo "📊 Bilan des rapports XML prêts pour Octane :"
+          ls -l report_*.xml
+
 
 
       - name: 2. Fusionner les CSV pour Power BI
