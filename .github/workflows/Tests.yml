@@ -48,7 +48,7 @@ jobs:
         if: always()
         run: |
           TARGET_ENV="${{ github.event.inputs.environment || 'preprod' }}"
-          mvn test -Dkarate.env=$TARGET_ENV "-Dkarate.options=classpath:features"
+          mvn test -Dkarate.env=$TARGET_ENV "-Dkarate.options=classpath:Practice"
 
       
       - name: Convert durations
@@ -89,15 +89,13 @@ jobs:
         if: always()
         run: |
           # --- PRÉPARATION ---
-          # Utilisation de chemins absolus pour éviter les erreurs Taurus
           BASE_DIR="$PWD"
           OUTPUT_DIR="$BASE_DIR/results_powerbi"
           mkdir -p "$OUTPUT_DIR"
           
-          echo "📂 Dossier de travail : $BASE_DIR"
-          echo "📂 Dossier cible CSV : $OUTPUT_DIR"
+          echo "📂 Dossier cible final : $OUTPUT_DIR"
 
-          # Configuration Taurus
+          # Configuration Taurus (Standard)
           cat <<EOF > octane_config.yml
           modules:
             jmeter:
@@ -117,37 +115,33 @@ jobs:
             echo "🚀 Lancement de $file..."
             FILENAME=$(basename "$file" .jmx)
             
-            # La commande magique avec chemin absolu
-            bzt "$file" octane_config.yml -q \
-              -o modules.jmeter.csv-jtl="$OUTPUT_DIR/${FILENAME}.csv"
+            # 1. On définit un dossier temporaire UNIQUE pour ce test
+            TEMP_ARTIFACT_DIR="artifacts_$FILENAME"
+            
+            # 2. On lance Taurus en lui disant : "Mets tout dans ce dossier temporaire" (-d)
+            bzt "$file" octane_config.yml -q -d "$TEMP_ARTIFACT_DIR"
 
-            # Gestion Octane
-            if [ -f report_octane.xml ]; then
-                sed -i -E "s/classname=\"bzt-[0-9]+\"/classname=\"$FILENAME\"/g" report_octane.xml
-                mv report_octane.xml "report_${FILENAME}.xml"
+            # 3. LA RÉCUPÉRATION (C'est ici que ça change)
+            # Taurus génère toujours un fichier 'kpi.jtl' (c'est un CSV) dans son dossier d'artefacts.
+            # On le prend et on le copie là où on veut.
+            if [ -f "$TEMP_ARTIFACT_DIR/kpi.jtl" ]; then
+                echo "✅ Résultats trouvés pour $FILENAME. Copie en cours..."
+                cp "$TEMP_ARTIFACT_DIR/kpi.jtl" "$OUTPUT_DIR/${FILENAME}.csv"
+            else
+                echo "❌ ATTENTION : Pas de fichier kpi.jtl généré pour $FILENAME"
+            fi
+
+            # Gestion Octane (Récupération du XML dans le même dossier temporaire)
+            if [ -f "$TEMP_ARTIFACT_DIR/report_octane.xml" ]; then
+                sed -i -E "s/classname=\"bzt-[0-9]+\"/classname=\"$FILENAME\"/g" "$TEMP_ARTIFACT_DIR/report_octane.xml"
+                mv "$TEMP_ARTIFACT_DIR/report_octane.xml" "report_${FILENAME}.xml"
             fi
           done
           
-          # Debug : Lister les fichiers générés
-          echo "🔍 Contenu du dossier results_powerbi :"
+          # Preuve de vie finale
+          echo "🔍 Contenu final du dossier results_powerbi :"
           ls -lh "$OUTPUT_DIR"
 
-      - name: 2. Fusionner les CSV pour Power BI
-        if: always()
-        run: |
-          # Création explicite du dossier final
-          mkdir -p final_results
-          
-          # On cherche les fichiers avec le chemin absolu
-          FIRST_FILE=$(ls results_powerbi/*.csv 2>/dev/null | head -n 1)
-          
-          if [ -n "$FIRST_FILE" ]; then
-            echo "✅ Fichiers trouvés. Début de la fusion..."
-            head -n 1 "$FIRST_FILE" > final_results/resultats_global.csv
-            tail -n +2 -q results_powerbi/*.csv >> final_results/resultats_global.csv
-          else
-            echo "⚠️ Aucun fichier CSV trouvé. Vérifiez l'étape précédente."
-          fi
 
       - name: 3. Mise à jour de l'Historique (Mode Append)
         if: always()
