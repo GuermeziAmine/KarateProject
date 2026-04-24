@@ -89,13 +89,19 @@ jobs:
         if: always()
         run: |
           # --- PRÉPARATION ---
-          mkdir -p results_powerbi
+          # Utilisation de chemins absolus pour éviter les erreurs Taurus
+          BASE_DIR="$PWD"
+          OUTPUT_DIR="$BASE_DIR/results_powerbi"
+          mkdir -p "$OUTPUT_DIR"
           
-          # Configuration Taurus pour OCTANE (Votre config originale)
+          echo "📂 Dossier de travail : $BASE_DIR"
+          echo "📂 Dossier cible CSV : $OUTPUT_DIR"
+
+          # Configuration Taurus
           cat <<EOF > octane_config.yml
           modules:
             jmeter:
-              path: $PWD/jmeter/bin/jmeter
+              path: $BASE_DIR/jmeter/bin/jmeter
           reporting:
           - module: junit-xml
             filename: report_octane.xml
@@ -106,39 +112,41 @@ jobs:
             default-executor: jmeter
           EOF
 
-          # --- BOUCLE D'EXÉCUTION ---
+          # --- EXÉCUTION ---
           for file in src/test/jmeter/*.jmx; do
             echo "🚀 Lancement de $file..."
             FILENAME=$(basename "$file" .jmx)
             
-            # LA LIGNE MAGIQUE :
-            # 1. On charge 'octane_config.yml' (Pour générer le XML)
-            # 2. On ajoute '-o modules.jmeter.csv-jtl=...' (Pour générer le CSV Power BI)
-            
+            # La commande magique avec chemin absolu
             bzt "$file" octane_config.yml -q \
-              -o modules.jmeter.csv-jtl="results_powerbi/${FILENAME}.csv"
+              -o modules.jmeter.csv-jtl="$OUTPUT_DIR/${FILENAME}.csv"
 
-            # Post-Traitement pour OCTANE (Renommage pour éviter l'écrasement)
+            # Gestion Octane
             if [ -f report_octane.xml ]; then
                 sed -i -E "s/classname=\"bzt-[0-9]+\"/classname=\"$FILENAME\"/g" report_octane.xml
                 mv report_octane.xml "report_${FILENAME}.xml"
             fi
           done
+          
+          # Debug : Lister les fichiers générés
+          echo "🔍 Contenu du dossier results_powerbi :"
+          ls -lh "$OUTPUT_DIR"
 
       - name: 2. Fusionner les CSV pour Power BI
         if: always()
         run: |
+          # Création explicite du dossier final
           mkdir -p final_results
-          # On prend l'en-tête du premier fichier trouvé
-          FIRST_FILE=$(ls results_powerbi/*.csv | head -n 1)
+          
+          # On cherche les fichiers avec le chemin absolu
+          FIRST_FILE=$(ls results_powerbi/*.csv 2>/dev/null | head -n 1)
           
           if [ -n "$FIRST_FILE" ]; then
+            echo "✅ Fichiers trouvés. Début de la fusion..."
             head -n 1 "$FIRST_FILE" > final_results/resultats_global.csv
-            # On empile tout le reste
             tail -n +2 -q results_powerbi/*.csv >> final_results/resultats_global.csv
-            echo "✅ Fusion terminée."
           else
-            echo "⚠️ Aucun résultat trouvé."
+            echo "⚠️ Aucun fichier CSV trouvé. Vérifiez l'étape précédente."
           fi
 
       - name: 3. Mise à jour de l'Historique (Mode Append)
@@ -147,31 +155,34 @@ jobs:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
           
-          # Création du dossier si inexistant
+          # Chemins
           mkdir -p history
           HISTORY_FILE="history/global_perf_history.csv"
           NEW_DATA="final_results/resultats_global.csv"
           
-          # --- ÉTAPE CRITIQUE : Ajouter le numéro de Build (Run ID) ---
-          # On ajoute ",Run_ID" à la fin de chaque ligne pour identifier l'exécution
-          # Le 'sed' ci-dessous ajoute le numéro du build à la fin de chaque ligne du fichier temporaire
-          sed -i "s/$/,$GITHUB_RUN_NUMBER/" "$NEW_DATA"
-          
-          # --- LOGIQUE D'AJOUT (APPEND) ---
-          if [ ! -f "$HISTORY_FILE" ]; then
-            echo "Création du fichier historique..."
-            # Si c'est la 1ère fois : On ajoute une colonne 'RunID' à l'entête et on copie tout
-            # L'astuce : on remplace le RunID de la ligne d'entête (qui est un chiffre) par le mot 'RunID'
-            sed "1s/$GITHUB_RUN_NUMBER/RunID/" "$NEW_DATA" > "$HISTORY_FILE"
-          else
-            echo "Ajout au fichier existant..."
-            # Si le fichier existe déjà : On enlève la 1ère ligne (Header) et on ajoute le reste à la fin
-            tail -n +2 "$NEW_DATA" >> "$HISTORY_FILE"
-          fi
+          # --- SÉCURITÉ : On vérifie si le fichier existe avant de toucher ---
+          if [ -f "$NEW_DATA" ]; then
+            echo "✅ Nouvelles données détectées. Traitement en cours..."
+            
+            # Ajouter le Run ID
+            sed -i "s/$/,$GITHUB_RUN_NUMBER/" "$NEW_DATA"
+            
+            # Logique d'ajout
+            if [ ! -f "$HISTORY_FILE" ]; then
+                echo "Création du fichier historique..."
+                sed "1s/$GITHUB_RUN_NUMBER/RunID/" "$NEW_DATA" > "$HISTORY_FILE"
+            else
+                echo "Ajout au fichier existant..."
+                tail -n +2 "$NEW_DATA" >> "$HISTORY_FILE"
+            fi
 
-          # --- COMMIT & PUSH ---
-          git add "$HISTORY_FILE"
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Append Run $GITHUB_RUN_NUMBER to History [skip ci]" && git push)
+            # Commit
+            git add "$HISTORY_FILE"
+            git diff --quiet && git diff --staged --quiet || (git commit -m "Append Run $GITHUB_RUN_NUMBER to History [skip ci]" && git push)
+          
+          else
+            echo "⚠️ Pas de fichier 'resultats_global.csv'. Le pipeline s'arrête proprement."
+          fi
 
 
       - name: Sauvegarde du rapport JUnit 
