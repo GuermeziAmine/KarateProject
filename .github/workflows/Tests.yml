@@ -13,7 +13,7 @@ on:
           - staging
           - dev
         required: true
-        default: 'preprod'
+        default: 'staging'
 
 jobs:
   
