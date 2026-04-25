@@ -13,9 +13,9 @@ on:
           - staging
           - dev
         required: true
-        default: 'staging'
+        default: 'preprod'
 
-jobs:
+jobs: 
   
   build:
     name: "Test - ${{ github.event.inputs.environment || 'preprod' }}"
