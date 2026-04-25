@@ -88,17 +88,12 @@ jobs:
           pip install bzt
           pip install urwid==2.1.2
 
-      - name: 1. Exécution Hybride (Taurus -> Octane & Power BI)
+      - name: 1. Exécution des tests de performance
         if: always()
         run: |
-          # --- 1. PRÉPARATION ---
           BASE_DIR="$PWD"
-          OUTPUT_DIR="$BASE_DIR/results_powerbi"
-          mkdir -p "$OUTPUT_DIR"
-          
-          echo "📂 Dossier cible CSV : $OUTPUT_DIR"
+          mkdir -p results_powerbi
 
-          # Configuration Taurus (Identique à votre originale)
           cat <<EOF > octane_config.yml
           modules:
             jmeter:
@@ -108,123 +103,56 @@ jobs:
             filename: report_octane.xml
             data-source: sample-labels
             sample-labels: true
-          # Ajout : On force aussi la génération du CSV
-          - module: final-stats
-            dump-csv: kpi.jtl
           settings:
             check-updates: false
-            default-executor: jmeter
           EOF
 
-          # --- 2. BOUCLE D'EXÉCUTION ---
           for file in src/test/jmeter/*.jmx; do
-            echo "======================================================="
-            echo "🚀 Lancement de $file..."
             FILENAME=$(basename "$file" .jmx)
-            
-            # On isole les artefacts techniques (CSV) dans un dossier temporaire
             TEMP_DIR="artifacts_$FILENAME"
-            
-            # On lance Taurus
-            # Note : report_octane.xml se créera à la racine (car défini dans le yml)
-            # Note : kpi.jtl se créera dans TEMP_DIR (car défini par -o settings.artifacts-dir)
-            bzt "$file" octane_config.yml -q \
-              -o settings.artifacts-dir="$TEMP_DIR"
 
-            # --- PARTIE A : Gestion du XML (Logique Originale Restaurée) ---
-            # Le fichier est généré à la racine sous le nom 'report_octane.xml'
-            if [ -f "report_octane.xml" ]; then
-                echo "🔧 Traitement du XML Octane..."
-                
-                # 1. Remplacement du nom de classe (Votre commande sed originale)
-                # Utilisation de 'bzt-[^\"]+' pour être sûr de capturer n'importe quel ID aléatoire
-                sed -i -E "s/classname=\"bzt-[^\"]+\"/classname=\"$FILENAME\"/g" report_octane.xml
-                
-                # 2. Renommage IMMÉDIAT pour éviter l'écrasement au prochain tour
-                mv report_octane.xml "report_${FILENAME}.xml"
-                
-                echo "✅ Rapport XML sauvé : report_${FILENAME}.xml"
-            else
-                echo "⚠️ Attention : Pas de report_octane.xml généré à la racine."
-            fi
+            bzt "$file" octane_config.yml -q -o settings.artifacts-dir="$TEMP_DIR"
 
-            # --- PARTIE B : Gestion du CSV (Pour Power BI) ---
-            # On va chercher le fichier kpi.jtl caché dans le dossier temporaire
-            if [ -f "$TEMP_DIR/kpi.jtl" ]; then
-                cp "$TEMP_DIR/kpi.jtl" "$OUTPUT_DIR/${FILENAME}.csv"
-                echo "✅ Données Power BI extraites."
-            else
-                # Plan de secours si kpi.jtl n'est pas là
-                FOUND_CSV=$(find "$TEMP_DIR" -name "*.csv" | head -n 1)
-                if [ -n "$FOUND_CSV" ]; then
-                   cp "$FOUND_CSV" "$OUTPUT_DIR/${FILENAME}.csv"
-                fi
-            fi
-            
-            echo "======================================================="
+            # XML → Octane
+            sed -i -E "s/classname=\"bzt-[^\"]+\"/classname=\"$FILENAME\"/g" report_octane.xml
+            mv report_octane.xml "report_${FILENAME}.xml"
+
+            # kpi.jtl → CSV Power BI
+            [ -f "$TEMP_DIR/kpi.jtl" ] && cp "$TEMP_DIR/kpi.jtl" "results_powerbi/${FILENAME}.csv"
           done
-          
-          # --- 3. VÉRIFICATION FINALE ---
-          echo "📊 Bilan des fichiers générés :"
-          echo "--- Rapports XML (Octane) ---"
-          ls -l report_*.xml
-          echo "--- Données CSV (Power BI) ---"
-          ls -lh "$OUTPUT_DIR"
-
-
-
 
       - name: 2. Fusionner les CSV pour Power BI
         if: always()
         run: |
-          # Création explicite du dossier final
           mkdir -p final_results
-          
-          # On cherche les fichiers avec le chemin absolu
-          FIRST_FILE=$(ls results_powerbi/*.csv 2>/dev/null | head -n 1)
-          
-          if [ -n "$FIRST_FILE" ]; then
-            echo "✅ Fichiers trouvés. Début de la fusion..."
-            head -n 1 "$FIRST_FILE" > final_results/resultats_global.csv
+          FIRST=$(ls results_powerbi/*.csv 2>/dev/null | head -1)
+          if [ -n "$FIRST" ]; then
+            head -1 "$FIRST" > final_results/resultats_global.csv
             tail -n +2 -q results_powerbi/*.csv >> final_results/resultats_global.csv
-          else
-            echo "⚠️ Aucun fichier CSV trouvé. Vérifiez l'étape précédente."
           fi
 
-      - name: 3. Mise à jour de l'Historique (Mode Append)
+      - name: 3. Mise à jour de l'historique
         if: always()
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
-          
-          # Chemins
+
           mkdir -p history
           HISTORY_FILE="history/global_perf_history.csv"
           NEW_DATA="final_results/resultats_global.csv"
-          
-          # --- SÉCURITÉ : On vérifie si le fichier existe avant de toucher ---
-          if [ -f "$NEW_DATA" ]; then
-            echo "✅ Nouvelles données détectées. Traitement en cours..."
-            
-            # Ajouter le Run ID
-            sed -i "s/$/,$GITHUB_RUN_NUMBER/" "$NEW_DATA"
-            
-            # Logique d'ajout
-            if [ ! -f "$HISTORY_FILE" ]; then
-                echo "Création du fichier historique..."
-                sed "1s/$GITHUB_RUN_NUMBER/RunID/" "$NEW_DATA" > "$HISTORY_FILE"
-            else
-                echo "Ajout au fichier existant..."
-                tail -n +2 "$NEW_DATA" >> "$HISTORY_FILE"
-            fi
 
-            # Commit
-            git add "$HISTORY_FILE"
-            git diff --quiet && git diff --staged --quiet || (git commit -m "Append Run $GITHUB_RUN_NUMBER to History [skip ci]" && git push)
-          
+          [ ! -f "$NEW_DATA" ] && exit 0
+
+          sed -i "s/$/$GITHUB_RUN_NUMBER/" "$NEW_DATA"
+
+          if [ ! -f "$HISTORY_FILE" ]; then
+            sed "1s/$GITHUB_RUN_NUMBER/RunID/" "$NEW_DATA" > "$HISTORY_FILE"
           else
-            echo "⚠️ Pas de fichier 'resultats_global.csv'. Le pipeline s'arrête proprement."
+            tail -n +2 "$NEW_DATA" >> "$HISTORY_FILE"
           fi
+
+          git add "$HISTORY_FILE"
+          git diff --staged --quiet || git commit -m "Append Run $GITHUB_RUN_NUMBER [skip ci]" && git push
 
 
       - name: Sauvegarde du rapport JUnit 
