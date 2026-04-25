@@ -143,10 +143,12 @@ jobs:
 
           [ ! -f "$NEW_DATA" ] && exit 0
 
-          sed -i "s/$/$GITHUB_RUN_NUMBER/" "$NEW_DATA"
+          # ✅ Virgule restaurée — le RunID devient une 14ème colonne séparée
+          sed -i "s/$/,$GITHUB_RUN_NUMBER/" "$NEW_DATA"
 
           if [ ! -f "$HISTORY_FILE" ]; then
-            sed "1s/$GITHUB_RUN_NUMBER/RunID/" "$NEW_DATA" > "$HISTORY_FILE"
+            # Remplace le numéro ajouté sur la ligne d'en-tête par le label "RunID"
+            sed "1s/,$GITHUB_RUN_NUMBER/,RunID/" "$NEW_DATA" > "$HISTORY_FILE"
           else
             tail -n +2 "$NEW_DATA" >> "$HISTORY_FILE"
           fi
