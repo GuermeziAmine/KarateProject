@@ -88,7 +88,7 @@ jobs:
           pip install bzt
           pip install urwid==2.1.2
 
-      - name: 1. Exécution des tests de performance
+      - name: Exécution des tests de performance
         if: always()
         run: |
           BASE_DIR="$PWD"
@@ -113,15 +113,15 @@ jobs:
 
             bzt "$file" octane_config.yml -q -o settings.artifacts-dir="$TEMP_DIR"
 
-            # XML → Octane
+            # XML
             sed -i -E "s/classname=\"bzt-[^\"]+\"/classname=\"$FILENAME\"/g" report_octane.xml
             mv report_octane.xml "report_${FILENAME}.xml"
 
-            # kpi.jtl → CSV Power BI
+            # CSV Power BI
             [ -f "$TEMP_DIR/kpi.jtl" ] && cp "$TEMP_DIR/kpi.jtl" "results_powerbi/${FILENAME}.csv"
           done
 
-      - name: 2. Fusionner les CSV pour Power BI
+      - name: Fusionner les CSV pour Power BI
         if: always()
         run: |
           mkdir -p final_results
@@ -131,7 +131,7 @@ jobs:
             tail -n +2 -q results_powerbi/*.csv >> final_results/resultats_global.csv
           fi
 
-      - name: 3. Mise à jour de l'historique
+      - name: Mise à jour de l'historique
         if: always()
         run: |
           git config --global user.name "GitHub Actions Bot"
@@ -143,11 +143,9 @@ jobs:
 
           [ ! -f "$NEW_DATA" ] && exit 0
 
-          # ✅ Virgule restaurée — le RunID devient une 14ème colonne séparée
           sed -i "s/$/,$GITHUB_RUN_NUMBER/" "$NEW_DATA"
 
           if [ ! -f "$HISTORY_FILE" ]; then
-            # Remplace le numéro ajouté sur la ligne d'en-tête par le label "RunID"
             sed "1s/,$GITHUB_RUN_NUMBER/,RunID/" "$NEW_DATA" > "$HISTORY_FILE"
           else
             tail -n +2 "$NEW_DATA" >> "$HISTORY_FILE"
