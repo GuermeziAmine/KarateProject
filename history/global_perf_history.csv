@@ -816,7 +816,7 @@ timeStamp,elapsed,label,responseCode,responseMessage,threadName,success,bytes,gr
 1777137494225,52,Get_all_Users,200,OK,Stress_Test 1-4,true,6875,1,1,51,runnervmeorf1,34,216
 1777137496223,49,Get_all_Users,200,OK,Stress_Test 1-5,true,6875,1,1,49,runnervmeorf1,32,216
 1777145934692,322,GET_All_Posts,200,OK,Scenario_Posts_Comments 1-1,true,28753,7,7,310,runnervmeorf1,296,217
-1777145934797,,217,GET_All_Posts,200,OK,Scenario_Posts_Comments 1-2,true,28753,7,7,205,runnervmeorf1,195,217
+1777145934797,217,GET_All_Posts,200,OK,Scenario_Posts_Comments 1-2,true,28753,7,7,205,runnervmeorf1,195,217
 1777145935156,33,GET_All_Posts,200,OK,Scenario_Posts_Comments 1-3,true,28753,7,7,30,runnervmeorf1,21,217
 1777145935697,29,GET_All_Posts,200,OK,Scenario_Posts_Comments 1-4,true,28753,8,8,26,runnervmeorf1,17,217
 1777145935915,24,GET_All_Posts,200,OK,Scenario_Posts_Comments 1-5,true,28753,9,9,22,runnervmeorf1,14,217
