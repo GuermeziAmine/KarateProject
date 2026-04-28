@@ -60,7 +60,7 @@ timeStamp,elapsed,label,responseCode,responseMessage,threadName,success,bytes,gr
 1777063440598,18,POST_Create_Comment,200,OK,Scenario_Posts_Comments 1-6,true,158980,2,2,16,runnervmeorf1,0,205
 1777063440903,19,POST_Create_Comment,200,OK,Scenario_Posts_Comments 1-8,true,158980,1,1,16,runnervmeorf1,0,205
 1777063444776,231,POST_User,201,Created,Posts_API_Tests 1-1,true,1340,1,1,228,runnervmeorf1,204,205
-1777063448211,245,Update_Post,200,OK,Update_Test 1-1,false,1202,1,1,242,runnervmeorf1,,217,205
+1777063448211,245,Update_Post,200,OK,Update_Test 1-1,false,1202,1,1,242,runnervmeorf1,217,205
 1777063448643,40,Update_Post,200,OK,Update_Test 1-2,false,1202,1,1,40,runnervmeorf1,22,205
 1777063452758,234,Get_all_Users,200,OK,Stress_Test 1-1,true,6862,1,1,230,runnervmeorf1,211,205
 1777063454690,50,Get_all_Users,200,OK,Stress_Test 1-2,true,6863,1,1,49,runnervmeorf1,20,205
