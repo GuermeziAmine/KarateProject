@@ -44,7 +44,7 @@ jobs:
         run: |
           cd checksum
           npm install
-          node index.js &
+          node index.js & 
           sleep 5
 
       - name: Run Karate Tests
