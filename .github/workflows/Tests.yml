@@ -42,7 +42,7 @@ jobs:
 
       - name: Start Checksum Node Server
         run: |
-          cd checksum
+          cd src/test/resources/checksum
           npm install
           node index.js & 
           sleep 5
