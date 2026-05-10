@@ -19,7 +19,5 @@ function fn() {
     config.omniUrl = config.baseUrl + '/preprod';
   }
 
-
-  
   return config;
 }

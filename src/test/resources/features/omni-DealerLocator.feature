@@ -8,22 +8,22 @@ Scenario: Retrieve all dealer details for a specific geolocal info
 
       * def RequestBody =
         """
-       {
-    "consumer": "DCR.WEB.AC",
-    "country": "IT",
-    "culture": "it",
-    "criterias": "VN",
-    "criteriasExclude": "0",
-    "details": "max",
-    "latitude": 44.837789,
-    "longitude": -0.5791799999999512,
-    "rMax": 200000,
-    "resultMax": 50,
-    "sort": "distance",
-    "unit": "km",
-    "brand": "83"
+    {
+      "consumer": "DCR.WEB.AC",
+      "country": "IT",
+      "culture": "it",
+      "criterias": "VN",
+      "criteriasExclude": "0",
+      "details": "max",
+      "latitude": 44.837789,
+      "longitude": -0.5791799999999512,
+      "rMax": 200000,
+      "resultMax": 50,
+      "sort": "distance",
+      "unit": "km",
+      "brand": "83"
 
-      }
+    }
 
         """
       * def utility = call read('utilities.feature') { RequestBody: #(RequestBody) }
