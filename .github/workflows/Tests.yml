@@ -67,6 +67,7 @@ jobs:
       - name: Install JMeter 5.6.3
         if: steps.cache-jmeter.outputs.cache-hit != 'true'
         run: |
+          # Use the stable Archive mirror to guarantee the download never links to a deleted file
           wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
           tar -xzf apache-jmeter-5.6.3.tgz
           mv apache-jmeter-5.6.3 jmeter
@@ -90,10 +91,13 @@ jobs:
           BASE_DIR="$PWD"
           mkdir -p results_powerbi
 
+          # FIXED: Added 'version' and disabled automatic downloads to force Taurus to use your 5.6.3 folder
           cat <<EOF > octane_config.yml
           modules:
             jmeter:
               path: $BASE_DIR/jmeter/bin/jmeter
+              version: 5.6.3
+              download-link: false
           reporting:
           - module: junit-xml
             filename: report_octane.xml
@@ -116,6 +120,7 @@ jobs:
             # CSV Power BI
             [ -f "$TEMP_DIR/kpi.jtl" ] && cp "$TEMP_DIR/kpi.jtl" "results_powerbi/${FILENAME}.csv"
           done
+
 
       - name: Fusionner les CSV pour Power BI
         if: always()

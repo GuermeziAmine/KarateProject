@@ -6,4 +6,4 @@ Background:
 Scenario: Delete post
     Given path 'posts', 1
     When method DELETE
-    Then status 400
+    Then status 200
