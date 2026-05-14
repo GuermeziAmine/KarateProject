@@ -25,7 +25,7 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout du coder
+      - name: Checkout du code
         uses: actions/checkout@v4
 
 
@@ -35,10 +35,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-
-      - name: Log workflow inputs for Octane
-        run: |
-          echo "description::Environnement: ${{ github.event.inputs.environment || 'preprod' }}"
 
       - name: Start Checksum Node Server
         run: |
@@ -150,7 +146,6 @@ jobs:
           else
             tail -n +2 "$NEW_DATA" >> "$HISTORY_FILE"
           fi
-
           git add "$HISTORY_FILE"
           git diff --staged --quiet || git commit -m "Append Run $GITHUB_RUN_NUMBER [skip ci]" && git push
 
@@ -161,8 +156,7 @@ jobs:
         with:
           name: jmeter-test-results
           path: report_*.xml
-          retention-days: 5
-      
+         
      
       - name: Sauvegarde des rapports
         if: always()
@@ -170,3 +164,6 @@ jobs:
         with:
           name: surefire-reports
           path: target/surefire-reports/
+
+
+          
