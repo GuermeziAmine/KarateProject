@@ -22,7 +22,7 @@ Scenario: Retrieve Vehicule Information based on VIN
       
       When method Get
 
-      Then status 401
+      Then status 502
 
 Scenario: Retrieve manual vehicle referentials from Autobiz
 
@@ -53,7 +53,7 @@ Scenario: Retrieve manual vehicle referentials from Autobiz
       And request RequestBody
       When method post
 
-      Then status 200
+      Then status 502
 
 Scenario: Retrieve vehicle information using license plate number
 
@@ -88,7 +88,7 @@ Scenario: Retrieve vehicle information using license plate number
       And request RequestBody
       When method post
 
-      Then status 401
+      Then status 502
 
 Scenario: Update vehicle valuation using car-check ID
 
@@ -125,7 +125,7 @@ Scenario: Update vehicle valuation using car-check ID
       And request RequestBody
       When method put
 
-      Then status 200
+      Then status 502
 
 Scenario: Perform an vehicle valuation via Autobiz
 

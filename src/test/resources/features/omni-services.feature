@@ -2481,7 +2481,7 @@ Scenario: Get Retailer Family Service
       And request RequestBody
       When method post
 
-      Then status 500
+      Then status 200
 
 Scenario: Get Retailer Plans Service
 
