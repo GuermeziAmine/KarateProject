@@ -23,7 +23,7 @@ jobs:
         
           octaneUrl: 'https://almoctane-eur.saas.microfocus.com'
           octaneSharedSpace: 653003
-          octaneWorkspace: 1007
+          octaneWorkspace: 1001
           octaneClientId: ${{secrets.ALM_OCTANE_CLIENT_ID}}
           octaneClientSecret: ${{secrets.ALM_OCTANE_CLIENT_SECRET}}
           githubToken: ${{secrets.GITHUB_TOKEN}}
