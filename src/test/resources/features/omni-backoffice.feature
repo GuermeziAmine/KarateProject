@@ -19,7 +19,7 @@ Scenario: retrieve  the configurations from the BO
             "direction": "DESC",
             "colName": ""
         }
-        }   
+     }   
       
       """
       * def utility = call read('utilities.feature') { RequestBody: #(RequestBody) }
