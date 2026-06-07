@@ -155,7 +155,7 @@ jobs:
         if: always()
         with:
           name: jmeter-test-results
-          path: report_*.xml
+          path: report_*.xml 
          
      
       - name: Sauvegarde des rapports
