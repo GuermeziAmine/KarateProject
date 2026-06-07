@@ -75,7 +75,7 @@ jobs:
       - name: Configuration de Python
         if: always()      
         uses: actions/setup-python@v4
-        with:
+        with: 
           python-version: '3.10'
 
       - name: Installation de Taurus (bzt)
